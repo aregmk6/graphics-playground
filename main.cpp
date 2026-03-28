@@ -1,12 +1,12 @@
-#include "glm/ext/matrix_clip_space.hpp"
+#define STB_IMAGE_IMPLEMENTATION
+
+#include "glad/glad.h"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "glm/geometric.hpp"
 #include "glm/trigonometric.hpp"
-#define STB_IMAGE_IMPLEMENTATION
-
-#include "glad/glad.h"
 #include "stb_image.h"
+#include "utilities.h"
 #include <GLFW/glfw3.h>
 #include <cmath>
 #include <cstdlib>
@@ -19,81 +19,30 @@
 #include <iostream>
 #include <vector>
 
-#define ERR_CHECK(arg, name)                                                   \
-    do {                                                                       \
-        if (!arg) {                                                            \
-            std::cerr << name << " failed" << std::endl;                       \
-            glfwTerminate();                                                   \
-            exit(EXIT_FAILURE);                                                \
-        }                                                                      \
-    } while (0)
-
-constexpr char w_name[] = "jump";
-constexpr int w_width = 640;
-constexpr int w_height = 480;
-constexpr int shader_buff_size = 1024 * 8;
-constexpr int pitch_max_limit = 89;
-constexpr int pitch_min_limit = -89;
-
-enum class attrib { COORD = 0, TEX = 1 };
-
-static int gl_error_check = 1;
+static int error_res_check = 1;
 
 static char shader_src_buff[shader_buff_size];
-const char *source_arr = shader_src_buff;
+static const char *shader_src_ptr = shader_src_buff;
 
-static void error_callback(int error_num, const char *info) {
-    std::cerr << "Error number: " << error_num //
-              << ". description: " << info     //
-              << std::endl;                    //
-}
-
+static void error_callback(int error_num, const char *info);
 static void key_callback(GLFWwindow *window, int key, int scancode, int action,
-                         int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
-}
+                         int mods);
+static void mouse_pos_callback(GLFWwindow *window, double xpos, double ypos);
+void mouse_enter_callback(GLFWwindow *window, int entered);
 
-static GLfloat mix_amount = 0.2f;
+static GLfloat mix_amount = 0.0f;
 static GLfloat rotation_deg = 0.0f;
 static GLfloat camera_speed = 5.0f;
 static GLfloat dt = 0.0f;
 static GLfloat dx = dt * camera_speed;
 static GLfloat lastFrameTime = 0.0f;
 static GLfloat curFrameTime = 0.0f;
+static GLfloat lastx = 400, lasty = 300, pitch = 0.0f, yaw = 0.0f;
+static GLfloat sensativity = 0.1f;
 
 static glm::vec3 up(0.0f, 1.0f, 0.0f);
 static glm::vec3 cameraPos(0.0f, 0.0f, 3.0f);
 static glm::vec3 cameraFront(0.0f, 0.0f, -1.0f);
-
-static GLfloat lastx = 400, lasty = 300, pitch = 0.0f, yaw = 0.0f;
-static GLfloat sensativity = 0.1f;
-
-static void mouse_pos_callback(GLFWwindow *window, double xpos, double ypos) {
-    GLfloat offsetx = xpos - lastx;
-    GLfloat offsety = lasty - ypos;
-    lastx = xpos;
-    lasty = ypos;
-
-    yaw += offsetx * sensativity;
-    pitch += offsety * sensativity;
-
-    pitch = pitch > pitch_max_limit   ? pitch = pitch_max_limit
-            : pitch < pitch_min_limit ? pitch_min_limit
-                                      : pitch;
-
-    cameraFront = glm::normalize(
-        glm::vec3(cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
-                  sin(glm::radians(pitch)),
-                  sin(glm::radians(yaw)) * cos(glm::radians(pitch))));
-}
-
-void mouse_enter_callback(GLFWwindow *window, int entered) {
-    if (entered) {
-        std::cout << "entered window" << std::endl;
-    }
-}
 
 static void process_input(GLFWwindow *window) {
     curFrameTime = glfwGetTime();
@@ -245,22 +194,22 @@ int main() {
 
     using std::filesystem::path;
     get_shader_data(path(PROJECT_ROOT_PATH) / "shaders" / "shader.vert");
-    glShaderSource(vertexShader, 1, &source_arr, NULL);
+    glShaderSource(vertexShader, 1, &shader_src_ptr, NULL);
     glCompileShader(vertexShader);
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &gl_error_check);
-    ERR_CHECK(gl_error_check, "vertex shader compile");
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &error_res_check);
+    ERR_CHECK(error_res_check, "vertex shader compile");
 
     get_shader_data(path(PROJECT_ROOT_PATH) / "shaders" / "shader.frag");
-    glShaderSource(fragmentShader, 1, &source_arr, NULL);
+    glShaderSource(fragmentShader, 1, &shader_src_ptr, NULL);
     glCompileShader(fragmentShader);
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &gl_error_check);
-    ERR_CHECK(gl_error_check, "fragment shader compile");
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &error_res_check);
+    ERR_CHECK(error_res_check, "fragment shader compile");
 
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &gl_error_check);
-    ERR_CHECK(gl_error_check, "program link");
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &error_res_check);
+    ERR_CHECK(error_res_check, "program link");
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
@@ -435,7 +384,6 @@ int main() {
         glUseProgram(shaderProgram);
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
         glad_glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
         glad_glUniform1f(mixLocation, mix_amount);
         glBindVertexArray(VAO);
         for (int i = 0; i < 8; ++i) {
@@ -456,4 +404,42 @@ int main() {
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
+}
+
+static void error_callback(int error_num, const char *info) {
+    std::cerr << "Error number: " << error_num //
+              << ". description: " << info     //
+              << std::endl;                    //
+}
+
+static void key_callback(GLFWwindow *window, int key, int scancode, int action,
+                         int mods) {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+}
+
+static void mouse_pos_callback(GLFWwindow *window, double xpos, double ypos) {
+    GLfloat offsetx = xpos - lastx;
+    GLfloat offsety = lasty - ypos;
+    lastx = xpos;
+    lasty = ypos;
+
+    yaw += offsetx * sensativity;
+    pitch += offsety * sensativity;
+
+    pitch = pitch > pitch_max_limit   ? pitch = pitch_max_limit
+            : pitch < pitch_min_limit ? pitch_min_limit
+                                      : pitch;
+
+    cameraFront = glm::normalize(
+        glm::vec3(cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+                  sin(glm::radians(pitch)),
+                  sin(glm::radians(yaw)) * cos(glm::radians(pitch))));
+}
+
+void mouse_enter_callback(GLFWwindow *window, int entered) {
+    if (entered) {
+        std::cout << "entered window" << std::endl;
+    }
 }
