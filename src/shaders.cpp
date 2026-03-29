@@ -65,8 +65,13 @@ GLint shader::insert_uniform(const std::string &uni) {
     if (it != uniform_map.end()) return it->second;
 
     GLint uni_loc = glad_glGetUniformLocation(program_id, uni.c_str());
-    uniform_map[uni] = uni_loc;
 
+    if (uni_loc == -1) {
+        std::cerr << "uniform doesn't exist" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    uniform_map[uni] = uni_loc;
     return uni_loc;
 }
 
@@ -74,8 +79,7 @@ GLint shader::get_uniform_location(const std::string &uni) {
     auto it = uniform_map.find(uni);
     if (it != uniform_map.end()) return it->second;
 
-    std::cerr << "uniform doesn't exist" << std::endl;
-    exit(EXIT_FAILURE);
+    return insert_uniform(uni);
 }
 
 void shader::assign_sampler(GLint sampler_location, GLuint index) {
@@ -85,4 +89,22 @@ void shader::assign_sampler(GLint sampler_location, GLuint index) {
 void shader::assign_sampler(const std::string &uni, GLuint index) {
     GLint sampler_loc = get_uniform_location(uni);
     assign_sampler(sampler_loc, index);
+}
+
+void shader::assign_float_uniform(GLint uni_location, GLfloat val) {
+    glad_glUniform1f(uni_location, val);
+}
+
+void shader::assign_float_uniform(const std::string &uni, GLfloat val) {
+    GLint uni_location = get_uniform_location(uni);
+    assign_float_uniform(uni_location, val);
+}
+
+void shader::assign_mat_uniform(GLint uni_location, const glm::mat4 &mat) {
+    glad_glUniformMatrix4fv(uni_location, 1, GL_FALSE, glm::value_ptr(mat));
+}
+
+void shader::assign_mat_uniform(const std::string &uni, const glm::mat4 &mat) {
+    GLint uni_location = get_uniform_location(uni);
+    assign_mat_uniform(uni_location, mat);
 }
