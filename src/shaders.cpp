@@ -1,7 +1,7 @@
 #include "shaders.h"
-#include "utilities.h"
 #include <GLFW/glfw3.h>
 #include <fstream>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
 using namespace amk;

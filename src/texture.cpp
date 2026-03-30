@@ -1,6 +1,7 @@
 #include "texture.h"
+#include "stb_image.h"
 #include "utilities.h"
-#include <iostream>
+#include <GLFW/glfw3.h>
 
 using namespace amk;
 using std::filesystem::path;

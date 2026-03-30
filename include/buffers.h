@@ -2,9 +2,7 @@
 #define BUFFERS_H
 
 #include "glad/glad.h"
-#include "utilities.h"
 #include "vertex.h"
-#include <vector>
 
 namespace amk {
 

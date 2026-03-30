@@ -1,61 +1,38 @@
-#include "texture.h"
-#include "vertex.h"
-#define STB_IMAGE_IMPLEMENTATION
-
 #include "buffers.h"
+#include "callbacks.h"
+#include "camera.h"
 #include "glad/glad.h"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/ext/vector_float3.hpp"
-#include "glm/geometric.hpp"
 #include "glm/trigonometric.hpp"
 #include "shaders.h"
+#include "stb_image.h"
+#include "texture.h"
 #include "utilities.h"
+#include "vertex.h"
 #include <GLFW/glfw3.h>
-#include <cmath>
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <iostream>
 #include <vector>
 
-static void error_callback(int error_num, const char *info);
-static void key_callback(GLFWwindow *window, int key, int scancode, int action,
-                         int mods);
-static void mouse_pos_callback(GLFWwindow *window, double xpos, double ypos);
-void mouse_enter_callback(GLFWwindow *window, int entered);
-
-static GLfloat mix_ratio = 0.0f;
-static GLfloat rotation_deg = 0.0f;
-static GLfloat camera_speed = 5.0f;
-static GLfloat dt = 0.0f;
-static GLfloat dx = dt * camera_speed;
 static GLfloat lastFrameTime = 0.0f;
 static GLfloat curFrameTime = 0.0f;
-static GLfloat lastx = 400, lasty = 300, pitch = 0.0f, yaw = 0.0f;
-static GLfloat sensativity = 0.1f;
+static GLfloat dt = 0.0f;
+static GLfloat mix_ratio = 0.0f;
+static GLfloat rotation_deg = 0.0f;
 
-static glm::vec3 up(0.0f, 1.0f, 0.0f);
-static glm::vec3 cameraPos(0.0f, 0.0f, 3.0f);
-static glm::vec3 cameraFront(0.0f, 0.0f, -1.0f);
+static amk::cameraManager camera;
+static amk::callbackManager callbacks{camera};
 
 static void process_input(GLFWwindow *window) {
     curFrameTime = glfwGetTime();
     dt = curFrameTime - lastFrameTime;
-    dx = dt * camera_speed;
     lastFrameTime = curFrameTime;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        cameraPos += dx * cameraFront;
-    }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        cameraPos -= dx * cameraFront;
-    }
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        cameraPos += dx * glm::normalize(glm::cross(cameraFront, up));
-    }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        cameraPos -= dx * glm::normalize(glm::cross(cameraFront, up));
-    }
+
+    camera.update_cam_pos(window, dt);
+
     if (glfwGetKey(window, GLFW_KEY_PERIOD) == GLFW_PRESS) {
         mix_ratio += 0.01f;
         if (mix_ratio >= 1.0f) mix_ratio = 1.0f;
@@ -133,7 +110,7 @@ static const std::vector<glm::vec3> model_pos = {glm::vec3(-1.0f, 0.0f, -1.0f),
 int main() {
     ERR_CHECK(glfwInit(), "GLFW Init");
 
-    glfwSetErrorCallback(error_callback);
+    glfwSetErrorCallback(amk::callbackManager::error_callback);
 
     GLFWwindow *window = glfwCreateWindow(
         window_width, window_height, window_name, nullptr, nullptr);
@@ -141,9 +118,10 @@ int main() {
 
     glfwMakeContextCurrent(window);
 
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetCursorPosCallback(window, mouse_pos_callback);
-    glfwSetCursorEnterCallback(window, mouse_enter_callback);
+    glfwSetKeyCallback(window, amk::callbackManager::key_callback);
+    glfwSetCursorPosCallback(window, amk::callbackManager::mouse_pos_callback);
+    glfwSetCursorEnterCallback(window,
+                               amk::callbackManager::mouse_enter_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
@@ -182,8 +160,6 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         process_input(window);
-        m_view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
-        PV = m_perspect * m_view;
 
         glad_glActiveTexture(GL_TEXTURE0);
         bricks.bind();
@@ -199,7 +175,7 @@ int main() {
             m_model = glm::rotate(m_model,
                                   glm::radians(rotation_deg),
                                   glm::vec3(1.0f, 0.0f, 0.0f));
-            PVM = PV * m_model;
+            PVM = camera.get_PV() * m_model;
             shader.assign_mat_uniform(pvmLoc, PVM);
             glDrawElements(
                 GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
@@ -213,48 +189,4 @@ int main() {
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
-}
-
-// -----------------------------------------------------------------------------------------------------------
-//
-// 						call back functions
-//
-// -----------------------------------------------------------------------------------------------------------
-
-static void error_callback(int error_num, const char *info) {
-    std::cerr << "Error number: " << error_num //
-              << ". description: " << info     //
-              << std::endl;                    //
-}
-
-static void key_callback(GLFWwindow *window, int key, int scancode, int action,
-                         int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
-}
-
-static void mouse_pos_callback(GLFWwindow *window, double xpos, double ypos) {
-    GLfloat offsetx = xpos - lastx;
-    GLfloat offsety = lasty - ypos;
-    lastx = xpos;
-    lasty = ypos;
-
-    yaw += offsetx * sensativity;
-    pitch += offsety * sensativity;
-
-    pitch = pitch > pitch_max_limit   ? pitch = pitch_max_limit
-            : pitch < pitch_min_limit ? pitch_min_limit
-                                      : pitch;
-
-    cameraFront = glm::normalize(
-        glm::vec3(cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
-                  sin(glm::radians(pitch)),
-                  sin(glm::radians(yaw)) * cos(glm::radians(pitch))));
-}
-
-void mouse_enter_callback(GLFWwindow *window, int entered) {
-    if (entered) {
-        std::cout << "entered window" << std::endl;
-    }
 }
