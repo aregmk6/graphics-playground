@@ -9,20 +9,16 @@ namespace amk {
 using std::filesystem::path;
 
 class texture {
-    enum tex_type { DIFFUSION, SPECULAR };
-
-    GLuint texture_id;
-    tex_type type;
-    GLenum m_tex_target;
-    bool target_set = false;
-
   public:
+    enum textureType { DIFFUSION, SPECULAR };
+
     texture();
 
     texture(const path &p, GLint internal_format = GL_RGB,
             bool flip_mode = false, GLenum tex_target = GL_TEXTURE_2D);
 
     GLuint id() const;
+    textureType get_type() const;
 
     void set_texture(const path &p, GLint internal_format = GL_RGB,
                      bool flip_mode = false, GLenum tex_target = GL_TEXTURE_2D);
@@ -33,6 +29,12 @@ class texture {
     void bind();
 
     void unbind();
+
+  private:
+    GLuint texture_id;
+    GLenum m_tex_target;
+    bool target_set = false;
+    textureType m_type;
 };
 
 }; // namespace amk

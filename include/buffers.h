@@ -3,11 +3,13 @@
 
 #include "glad/glad.h"
 #include "vertex.h"
+#include <vector>
 
 namespace amk {
 
 class EBO {
     GLuint ebo_id;
+    std::vector<GLuint> indices;
 
   public:
     EBO();
@@ -19,10 +21,13 @@ class EBO {
     void unbind();
 
     void set_data(const std::vector<GLuint> &indices);
+
+    size_t nr_of_indices() const;
 };
 
 class VBO {
     GLuint vbo_id;
+    std::vector<vertex> vertices;
 
   public:
     VBO();

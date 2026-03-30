@@ -6,7 +6,7 @@ EBO::EBO() {
     glGenBuffers(1, &ebo_id);
 }
 
-EBO::EBO(const std::vector<GLuint> &indices) {
+EBO::EBO(const std::vector<GLuint> &indices) : indices(indices) {
     glGenBuffers(1, &ebo_id);
     set_data(indices);
 }
@@ -28,11 +28,15 @@ void EBO::set_data(const std::vector<GLuint> &indices) {
     unbind();
 }
 
+size_t EBO::nr_of_indices() const {
+    return indices.size();
+}
+
 VBO::VBO() {
     glGenBuffers(1, &vbo_id);
 }
 
-VBO::VBO(const std::vector<vertex> &vertices) {
+VBO::VBO(const std::vector<vertex> &vertices) : vertices(vertices) {
     glGenBuffers(1, &vbo_id);
     set_data(vertices);
 }

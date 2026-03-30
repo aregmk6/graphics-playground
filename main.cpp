@@ -33,6 +33,7 @@ static void process_input(GLFWwindow *window) {
 
     camera.update_cam_pos(window, dt);
 
+    // per model logic
     if (glfwGetKey(window, GLFW_KEY_PERIOD) == GLFW_PRESS) {
         mix_ratio += 0.01f;
         if (mix_ratio >= 1.0f) mix_ratio = 1.0f;
@@ -41,10 +42,9 @@ static void process_input(GLFWwindow *window) {
         if (mix_ratio <= 0.0f) mix_ratio = 0.0f;
     }
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
-        rotation_deg = 0.0f;
+        rotation_deg += 5.0f;
     } else if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
-        rotation_deg -= 1.0f;
-        if (rotation_deg <= -180.0f) rotation_deg = -180.0f;
+        rotation_deg -= 5.0f;
     }
 }
 
@@ -119,12 +119,11 @@ int main() {
     glad_glEnable(GL_DEPTH_TEST);
 
     amk::shader shader("./shaders/shader.vert", "./shaders/shader.frag");
-    shader.use();
     GLuint mixLoc, pvmLoc;
     pvmLoc = shader.insert_uniform("u_PVM");
     mixLoc = shader.insert_uniform("u_mix");
-    shader.assign_sampler("TextureData1", 0);
-    shader.assign_sampler("TextureData2", 1);
+    shader.assign_tex_sampler("TextureData1", 0);
+    shader.assign_tex_sampler("TextureData2", 1);
 
     amk::texture bricks("./textures/bricks.jpg");
     amk::texture devious_apple("./textures/apple.png", GL_RGBA, true);
@@ -132,17 +131,12 @@ int main() {
     devious_apple.set_parameters(
         GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER, GL_NEAREST, GL_LINEAR);
 
-    auto vertices = get_vertex_data();
-    auto indices = get_index_data();
-
-    amk::VBO vbo(vertices);
-    amk::EBO ebo(indices);
+    amk::VBO vbo(get_vertex_data());
+    amk::EBO ebo(get_index_data());
     amk::VAO vao(vbo, ebo);
 
     // transformations
-    glm::mat4 m_model(1.0f), m_view(1.0f), PV{}, PVM{};
-    glm::mat4 m_perspect =
-        glm::perspective(45.0f, 800.0f / 600.0f, 0.1f, 100.0f);
+    glm::mat4 m_model(1.0f), PVM;
 
     GLint cur_buff_width, cur_buff_height;
     while (!glfwWindowShouldClose(window)) {
@@ -169,7 +163,7 @@ int main() {
             PVM = camera.get_PV() * m_model;
             shader.assign_mat_uniform(pvmLoc, PVM);
             glDrawElements(
-                GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
+                GL_TRIANGLES, ebo.nr_of_indices(), GL_UNSIGNED_INT, nullptr);
         }
 
         /* getting ready for next frame */

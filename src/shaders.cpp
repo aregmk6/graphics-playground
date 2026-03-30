@@ -54,10 +54,32 @@ shader::shader(const path &vert, const path &frag) {
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+
+    // all shaders will have a PVM uniform
+    pvm_location = insert_uniform("u_PVM");
+    // assign samplers by convention
+    assign_tex_sampler("TextureData1", 0);
+    assign_tex_sampler("TextureData2", 1);
+}
+
+GLuint shader::get_id() const {
+    return program_id;
+}
+
+bool shader::operator==(const shader &other) const {
+    return program_id == other.program_id;
+}
+
+bool shader::operator!=(const shader &other) const {
+    return !(*this == other);
 }
 
 void shader::use() const {
     glUseProgram(program_id);
+}
+
+void shader::unuse() const {
+    glUseProgram(0);
 }
 
 GLint shader::insert_uniform(const std::string &uni) {
@@ -82,17 +104,21 @@ GLint shader::get_uniform_location(const std::string &uni) {
     return insert_uniform(uni);
 }
 
-void shader::assign_sampler(GLint sampler_location, GLuint index) {
+void shader::assign_tex_sampler(GLint sampler_location, GLuint index) {
+    use();
     glad_glUniform1i(sampler_location, index);
+    unuse();
 }
 
-void shader::assign_sampler(const std::string &uni, GLuint index) {
+void shader::assign_tex_sampler(const std::string &uni, GLuint index) {
     GLint sampler_loc = get_uniform_location(uni);
-    assign_sampler(sampler_loc, index);
+    assign_tex_sampler(sampler_loc, index);
 }
 
 void shader::assign_float_uniform(GLint uni_location, GLfloat val) {
+    use();
     glad_glUniform1f(uni_location, val);
+    unuse();
 }
 
 void shader::assign_float_uniform(const std::string &uni, GLfloat val) {
@@ -101,10 +127,18 @@ void shader::assign_float_uniform(const std::string &uni, GLfloat val) {
 }
 
 void shader::assign_mat_uniform(GLint uni_location, const glm::mat4 &mat) {
+    use();
     glad_glUniformMatrix4fv(uni_location, 1, GL_FALSE, glm::value_ptr(mat));
+    unuse();
 }
 
 void shader::assign_mat_uniform(const std::string &uni, const glm::mat4 &mat) {
     GLint uni_location = get_uniform_location(uni);
     assign_mat_uniform(uni_location, mat);
+}
+
+void shader::send_PVM(const glm::mat4 &mat) {
+    use();
+    glad_glUniformMatrix4fv(pvm_location, 1, GL_FALSE, glm::value_ptr(mat));
+    unuse();
 }

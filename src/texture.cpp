@@ -20,6 +20,10 @@ GLuint texture::id() const {
     return texture_id;
 }
 
+texture::textureType texture::get_type() const {
+    return m_type;
+}
+
 void texture::set_texture(const path &p, GLint internal_format, bool flip_mode,
                           GLenum tex_target) {
 

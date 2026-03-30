@@ -26,7 +26,6 @@ static std::vector<glm::vec3> model_pos = {glm::vec3(-1.0f, 0.0f, -1.0f),
 constexpr char window_name[] = "jump";
 constexpr int window_width = 640;
 constexpr int window_height = 480;
-constexpr int shader_buff_size = 1024 * 8;
 constexpr int pitch_max_limit = 89;
 constexpr int pitch_min_limit = -89;
 
