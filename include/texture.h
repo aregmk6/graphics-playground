@@ -10,18 +10,17 @@ using std::filesystem::path;
 
 class texture {
   public:
-    enum textureType { DIFFUSION, SPECULAR };
+    enum textureType { diffusion, specular };
 
     texture();
 
-    texture(const path &p, GLint internal_format = GL_RGB,
-            bool flip_mode = false, GLenum tex_target = GL_TEXTURE_2D);
+    texture(const path &p, textureType type, GLenum tex_target = GL_TEXTURE_2D);
 
     GLuint id() const;
     textureType get_type() const;
 
-    void set_texture(const path &p, GLint internal_format = GL_RGB,
-                     bool flip_mode = false, GLenum tex_target = GL_TEXTURE_2D);
+    void set_texture(const path &p, textureType type,
+                     GLenum tex_target = GL_TEXTURE_2D);
 
     void set_parameters(GLint s_wrap_param, GLint t_wrap_param,
                         GLint min_fliter_param, GLint mag_filter_param);

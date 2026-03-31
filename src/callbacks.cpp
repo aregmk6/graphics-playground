@@ -5,8 +5,19 @@
 
 using namespace amk;
 
-callbackManager::callbackManager(cameraManager &camera) {
+callbackManager::callbackManager(GLFWwindow *window, cameraManager &camera) {
     cam = &camera;
+    win = window;
+
+    GLint width, height;
+    glfwGetFramebufferSize(win, &width, &height);
+    glViewport(0, 0, width, height);
+
+    glfwSetErrorCallback(error_callback);
+    glfwSetKeyCallback(win, key_callback);
+    glfwSetCursorPosCallback(win, mouse_pos_callback);
+    glfwSetCursorEnterCallback(win, mouse_enter_callback);
+    glfwSetFramebufferSizeCallback(win, framebuffer_size_callback);
 }
 
 void callbackManager::error_callback(int error_num, const char *info) {
@@ -31,4 +42,9 @@ void callbackManager::mouse_enter_callback(GLFWwindow *window, int entered) {
     if (entered) {
         std::cout << "entered window" << std::endl;
     }
+}
+
+void callbackManager::framebuffer_size_callback(GLFWwindow *window, int width,
+                                                int height) {
+    glViewport(0, 0, width, height);
 }

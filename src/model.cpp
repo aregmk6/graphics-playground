@@ -7,20 +7,41 @@ static constexpr glm::vec3 ZUNIT(0.0f, 0.0f, 1.0f);
 
 using namespace amk;
 
-model::model(shader &s, cameraManager &camera) //
-    : m_model(1.0f), m_pos(0.0f), m_axis_rotations(0.0f) {}
+model::model(cameraManager &camera, shader &s) //
+    : m_cur_shader(&s),                        //
+      camera(&camera),                         //
+      meshes{mesh{}},                          //
+      m_model(1.0f),                           //
+      m_scale(1.0f),                           //
+      m_axis_rotations(0.0f),                  //
+      m_pos(0.0f) {}
 
-model::model(shader &s, cameraManager &camera, const mash &m) //
-    : m_model(1.0f), m_pos(0.0f), m_axis_rotations(0.0f) {
-    add_mash(m);
+model::model(cameraManager &camera, shader &s, const mesh &m) //
+    : m_cur_shader(&s),                                       //
+      camera(&camera),                                        //
+      m_model(1.0f),                                          //
+      m_scale(1.0f),                                          //
+      m_axis_rotations(0.0f),                                 //
+      m_pos(0.0f) {
+    add_mesh(m);
 }
 
-void model::add_mash(const mash &m) {
-    mashes.push_back(m);
+model::model(cameraManager &camera, shader &s, const std::vector<mesh> &m_v)
+    : m_cur_shader(&s),       //
+      camera(&camera),        //
+      m_model(1.0f),          //
+      m_scale(1.0f),          //
+      m_axis_rotations(0.0f), //
+      m_pos(0.0f) {
+    add_mesh(m_v);
 }
 
-void model::add_mash(const std::vector<mash> &m) {
-    mashes.insert(mashes.end(), m.begin(), m.end());
+void model::add_mesh(const mesh &m) {
+    meshes.push_back(m);
+}
+
+void model::add_mesh(const std::vector<mesh> &m) {
+    meshes.insert(meshes.end(), m.begin(), m.end());
 }
 
 void model::set_model_pos(const glm::vec3 &pos) {
@@ -33,12 +54,15 @@ void model::set_model_scale(const glm::vec3 &scale) {
 
 void model::set_model_rot(const GLfloat deg, model::axis a) {
     switch (a) {
-    case X:
+    case x:
         m_axis_rotations.x = deg;
-    case Y:
+        break;
+    case y:
         m_axis_rotations.y = deg;
-    case Z:
+        break;
+    case z:
         m_axis_rotations.z = deg;
+        break;
     }
 }
 
@@ -48,8 +72,8 @@ void model::set_model_rot(const glm::vec3 &degs) {
 
 void model::draw_model() {
     m_cur_shader->send_PVM(camera->get_PV() * calc_model_mat());
-    for (auto &mash : mashes) {
-        mash.draw_mash(*m_cur_shader);
+    for (auto &mesh : meshes) {
+        mesh.draw_mesh(*m_cur_shader);
     }
 }
 
@@ -59,10 +83,10 @@ void model::draw_model(shader &s) {
 }
 
 glm::mat4 model::calc_model_mat() const {
-    glm::mat4 ret = glm::scale(DIAG, m_scale);
+    glm::mat4 ret = glm::translate(DIAG, m_pos);
     ret = glm::rotate(ret, glm::radians(m_axis_rotations.x), XUNIT);
     ret = glm::rotate(ret, glm::radians(m_axis_rotations.y), YUNIT);
     ret = glm::rotate(ret, glm::radians(m_axis_rotations.z), ZUNIT);
-    ret = glm::translate(ret, m_pos);
+    ret = glm::scale(ret, m_scale);
     return ret;
 }

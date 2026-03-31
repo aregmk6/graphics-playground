@@ -1,4 +1,5 @@
 #include "texture.h"
+#include "camera.h"
 #include "stb_image.h"
 #include "utilities.h"
 #include <GLFW/glfw3.h>
@@ -10,10 +11,9 @@ texture::texture() {
     glad_glGenTextures(1, &texture_id);
 };
 
-texture::texture(const path &p, GLint internal_format, bool flip_mode,
-                 GLenum tex_target) {
+texture::texture(const path &p, textureType type, GLenum tex_target) {
     glad_glGenTextures(1, &texture_id);
-    set_texture(p, internal_format, flip_mode, tex_target);
+    set_texture(p, type, tex_target);
 }
 
 GLuint texture::id() const {
@@ -24,17 +24,17 @@ texture::textureType texture::get_type() const {
     return m_type;
 }
 
-void texture::set_texture(const path &p, GLint internal_format, bool flip_mode,
-                          GLenum tex_target) {
-
+void texture::set_texture(const path &p, textureType type, GLenum tex_target) {
     if (!target_set) {
         m_tex_target = tex_target;
         target_set = true;
     }
 
+    m_type = type;
+
     bind();
 
-    stbi_set_flip_vertically_on_load(flip_mode);
+    stbi_set_flip_vertically_on_load(true);
     int img_width, img_height, channel_nr;
     path full_path = path(PROJECT_ROOT_PATH) / p;
     GLubyte *img = stbi_load( //
@@ -45,13 +45,40 @@ void texture::set_texture(const path &p, GLint internal_format, bool flip_mode,
         0);
     ERR_CHECK(img, "stbi_load");
 
+    GLint internal_format;
+    GLenum external_format;
+    switch (channel_nr) {
+    case 1:
+        internal_format = GL_RED;
+        external_format = GL_RED;
+        break;
+    case 2:
+        internal_format = GL_RG;
+        external_format = GL_RG;
+        break;
+    case 3:
+        internal_format = GL_RGB;
+        external_format = GL_RGB;
+        break;
+    case 4:
+        internal_format = GL_RGBA;
+        external_format = GL_RGBA;
+        break;
+    default:
+        internal_format = GL_RGB;
+        external_format = GL_RGB;
+        break;
+    }
+
+    std::cout << channel_nr << std::endl;
+
     glad_glTexImage2D(m_tex_target, //
                       0,
                       internal_format,
                       img_width,
                       img_height,
                       0,
-                      internal_format,
+                      external_format,
                       GL_UNSIGNED_BYTE,
                       img);
     glad_glGenerateMipmap(m_tex_target);

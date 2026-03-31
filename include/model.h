@@ -3,7 +3,7 @@
 
 #include "camera.h"
 #include "glm/ext/vector_float3.hpp"
-#include "mash.h"
+#include "mesh.h"
 #include "shaders.h"
 
 namespace amk {
@@ -11,7 +11,8 @@ namespace amk {
 class model {
     shader *m_cur_shader;
     cameraManager *camera;
-    std::vector<mash> mashes;
+    std::vector<mesh> meshes;
+
     glm::mat4 m_model;
 
     glm::vec3 m_scale;
@@ -21,15 +22,17 @@ class model {
     glm::mat4 calc_model_mat() const;
 
   public:
-    enum axis { X, Y, Z };
+    enum axis { x, y, z };
 
-    model(shader &s, cameraManager &camera);
+    model(cameraManager &camera, shader &s);
 
-    model(shader &s, cameraManager &camera, const mash &m);
+    model(cameraManager &camera, shader &s, const mesh &m);
 
-    void add_mash(const mash &m);
+    model(cameraManager &camera, shader &s, const std::vector<mesh> &m_v);
 
-    void add_mash(const std::vector<mash> &m);
+    void add_mesh(const mesh &m);
+
+    void add_mesh(const std::vector<mesh> &m);
 
     void set_model_pos(const glm::vec3 &pos);
 

@@ -8,9 +8,10 @@ namespace amk {
 
 class callbackManager {
     inline static cameraManager *cam = nullptr;
+    inline static GLFWwindow *win = nullptr;
 
   public:
-    callbackManager(cameraManager &camera);
+    callbackManager(GLFWwindow *window, cameraManager &camera);
 
     static void error_callback(int error_num, const char *info);
 
@@ -21,6 +22,9 @@ class callbackManager {
                                    double ypos);
 
     static void mouse_enter_callback(GLFWwindow *window, int entered);
+
+    static void framebuffer_size_callback(GLFWwindow *window, int width,
+                                          int height);
 };
 
 } // namespace amk

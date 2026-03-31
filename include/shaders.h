@@ -13,6 +13,7 @@ class shader {
     static constexpr int shader_buff_size = 1024 * 8;
     static char shader_src_buff[shader_buff_size];
     static const char *shader_src_ptr;
+    inline static GLuint cur_active_shader = 0;
 
     GLuint program_id = 0;
     GLuint pvm_location = 0;

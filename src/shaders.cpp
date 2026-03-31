@@ -75,7 +75,10 @@ bool shader::operator!=(const shader &other) const {
 }
 
 void shader::use() const {
-    glUseProgram(program_id);
+    if (program_id != cur_active_shader) {
+        glUseProgram(program_id);
+        cur_active_shader = program_id;
+    }
 }
 
 void shader::unuse() const {
@@ -107,7 +110,6 @@ GLint shader::get_uniform_location(const std::string &uni) {
 void shader::assign_tex_sampler(GLint sampler_location, GLuint index) {
     use();
     glad_glUniform1i(sampler_location, index);
-    unuse();
 }
 
 void shader::assign_tex_sampler(const std::string &uni, GLuint index) {
@@ -118,7 +120,6 @@ void shader::assign_tex_sampler(const std::string &uni, GLuint index) {
 void shader::assign_float_uniform(GLint uni_location, GLfloat val) {
     use();
     glad_glUniform1f(uni_location, val);
-    unuse();
 }
 
 void shader::assign_float_uniform(const std::string &uni, GLfloat val) {
@@ -129,7 +130,6 @@ void shader::assign_float_uniform(const std::string &uni, GLfloat val) {
 void shader::assign_mat_uniform(GLint uni_location, const glm::mat4 &mat) {
     use();
     glad_glUniformMatrix4fv(uni_location, 1, GL_FALSE, glm::value_ptr(mat));
-    unuse();
 }
 
 void shader::assign_mat_uniform(const std::string &uni, const glm::mat4 &mat) {
@@ -140,5 +140,4 @@ void shader::assign_mat_uniform(const std::string &uni, const glm::mat4 &mat) {
 void shader::send_PVM(const glm::mat4 &mat) {
     use();
     glad_glUniformMatrix4fv(pvm_location, 1, GL_FALSE, glm::value_ptr(mat));
-    unuse();
 }

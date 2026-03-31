@@ -6,6 +6,6 @@ target_sources(jump
 		PRIVATE camera.cpp
 		PRIVATE stbi_impl.cpp
 		PRIVATE callbacks.cpp
-		PRIVATE mash.cpp
+		PRIVATE mesh.cpp
 		PRIVATE model.cpp		
 )
