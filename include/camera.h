@@ -19,7 +19,6 @@ class cameraManager {
     GLfloat aspectx = 600.0f;
     GLfloat close = 0.1f;
     GLfloat far = 100.0f;
-    GLfloat mix_ratio = 0.0f;
     GLfloat rotation_deg = 0.0f;
     GLfloat camera_speed = 5.0f;
     GLfloat lastx = 400;

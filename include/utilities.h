@@ -7,7 +7,7 @@
 #define ERR_CHECK(arg, name)                                                   \
     do {                                                                       \
         if (!arg) {                                                            \
-            std::cerr << name << " failed" << std::endl;                       \
+            std::cerr << "failure: " << name << std::endl;                     \
             glfwTerminate();                                                   \
             exit(EXIT_FAILURE);                                                \
         }                                                                      \

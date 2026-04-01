@@ -20,8 +20,10 @@ mesh::mesh()
 }
 
 mesh::mesh(const glm::vec<3, GLubyte> &rgb) {
-    m_textures.push_back(texture("./textures/bricks.jpg", texture::diffusion));
+    m_textures.push_back(texture(rgb, texture::diffusion));
+    m_textures.push_back(texture(rgb, texture::specular));
     m_textures[0].set_parameters(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
+    m_textures[1].set_parameters(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
 }
 
 mesh::mesh(const std::vector<vertex> &vertices,  //

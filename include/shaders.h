@@ -11,6 +11,7 @@
 namespace amk {
 
 class shader {
+
     struct material {
         GLuint ambient;
         GLuint shine;
@@ -31,10 +32,10 @@ class shader {
     GLuint program_id = 0;
     GLuint pvm_location = 0;
     GLuint viewPos_location = 0;
-    GLuint fragPos_location = 0;
     GLuint normalMatrix_location = 0;
-    material material_locations = {0};
-    light light_locations = {0};
+    GLuint modelMatrix_location = 0;
+    material material_struct_location = {0};
+    light light_struct_location = {0};
     std::unordered_map<std::string, GLint> uniform_map;
 
     void get_shader_data(const std::filesystem::path &p) const;
@@ -55,9 +56,19 @@ class shader {
     void assign_tex_sampler(const std::string &uni, GLuint index);
     void assign_float_uniform(GLint uni_location, GLfloat val);
     void assign_float_uniform(const std::string &uni, GLfloat val);
-    void assign_mat_uniform(GLint uni_location, const glm::mat4 &mat);
-    void assign_mat_uniform(const std::string &uni, const glm::mat4 &mat);
+    void assign_vec3_uniform(GLint uni_location, const glm::vec3 &v);
+    void assign_vec3_uniform(const std::string &uni, const glm::vec3 &v);
+    void assign_mat3_uniform(GLint uni_location, const glm::mat3 &mat);
+    void assign_mat3_uniform(const std::string &uni, const glm::mat3 &mat);
+    void assign_mat4_uniform(GLint uni_location, const glm::mat4 &mat);
+    void assign_mat4_uniform(const std::string &uni, const glm::mat4 &mat);
     void send_PVM(const glm::mat4 &mat);
+    void send_light_pos(const glm::mat4 &mat);
+    void send_model_matrix(const glm::mat4 &mat);
+    void send_normal_matrix(const glm::mat3 &mat);
+    void send_light_options(glm::vec3 ambient, glm::vec3 diffuse,
+                            glm::vec3 specular);
+    void send_material_options(glm::vec3 ambient, GLfloat shine);
 };
 
 } // namespace amk

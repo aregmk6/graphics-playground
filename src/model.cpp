@@ -1,4 +1,5 @@
 #include "model.h"
+#include "glm/ext/vector_float3.hpp"
 
 static constexpr glm::mat4 DIAG(1.0f);
 static constexpr glm::vec3 XUNIT(1.0f, 0.0f, 0.0f);
@@ -14,7 +15,9 @@ model::model(cameraManager &camera, shader &s) //
       m_model(1.0f),                           //
       m_scale(1.0f),                           //
       m_axis_rotations(0.0f),                  //
-      m_pos(0.0f) {}
+      m_pos(0.0f) {
+    set_material_options();
+}
 
 model::model(cameraManager &camera, shader &s, const mesh &m) //
     : m_cur_shader(&s),                                       //
@@ -23,6 +26,7 @@ model::model(cameraManager &camera, shader &s, const mesh &m) //
       m_scale(1.0f),                                          //
       m_axis_rotations(0.0f),                                 //
       m_pos(0.0f) {
+    set_material_options();
     add_mesh(m);
 }
 
@@ -33,6 +37,7 @@ model::model(cameraManager &camera, shader &s, const std::vector<mesh> &m_v)
       m_scale(1.0f),          //
       m_axis_rotations(0.0f), //
       m_pos(0.0f) {
+    set_material_options();
     add_mesh(m_v);
 }
 
@@ -71,7 +76,13 @@ void model::set_model_rot(const glm::vec3 &degs) {
 }
 
 void model::draw_model() {
-    m_cur_shader->send_PVM(camera->get_PV() * calc_model_mat());
+    glm::mat4 model_mat = calc_model_mat();
+    glm::mat3 inv_trans_model_mat = glm::transpose(glm::inverse(model_mat));
+    m_cur_shader->send_material_options(material_opt.ambient,
+                                        material_opt.shine);
+    m_cur_shader->send_model_matrix(model_mat);
+    m_cur_shader->send_normal_matrix(inv_trans_model_mat);
+    m_cur_shader->send_PVM(camera->get_PV() * model_mat);
     for (auto &mesh : meshes) {
         mesh.draw_mesh(*m_cur_shader);
     }
@@ -89,4 +100,36 @@ glm::mat4 model::calc_model_mat() const {
     ret = glm::rotate(ret, glm::radians(m_axis_rotations.z), ZUNIT);
     ret = glm::scale(ret, m_scale);
     return ret;
+}
+
+void model::set_material_options() {
+    material_opt.ambient = glm::vec3(0.1f);
+}
+
+/* ------------------------ light model ------------------------ */
+
+void lightModel::set_material_options() {
+    light_opt.ambient = glm::vec3(0.1f);
+    light_opt.diffuse = glm::vec3(0.7f);
+    light_opt.specular = glm::vec3(0.2f);
+}
+
+lightModel::lightModel(cameraManager &camera, shader &s)
+    : model(camera, s, mesh{{255, 255, 255}}) {
+    set_material_options();
+}
+
+void lightModel::draw_model() {
+    glm::mat4 model_mat = calc_model_mat();
+    glm::mat3 inv_trans_model_mat = glm::transpose(glm::inverse(model_mat));
+    m_cur_shader->send_light_options(
+        light_opt.ambient, light_opt.diffuse, light_opt.specular);
+    m_cur_shader->send_light_pos(model_mat);
+    m_cur_shader->send_model_matrix(model_mat);
+    m_cur_shader->send_normal_matrix(inv_trans_model_mat);
+    m_cur_shader->send_PVM(camera->get_PV() * model_mat);
+
+    for (auto &mesh : meshes) {
+        mesh.draw_mesh(*m_cur_shader);
+    }
 }

@@ -9,12 +9,13 @@ using std::filesystem::path;
 
 texture::texture() {
     glad_glGenTextures(1, &texture_id);
-};
+}
 
-texture::texture(const glm::vec<3, GLubyte> &rgb) {
+texture::texture(const glm::vec<3, GLubyte> &rgb, textureType type) {
     glad_glGenTextures(1, &texture_id);
-    set_solid_color_texture(rgb);
-};
+    // default diffusion type
+    set_solid_color_texture(rgb, type);
+}
 
 texture::texture(const path &p, textureType type, GLenum tex_target) {
     glad_glGenTextures(1, &texture_id);
@@ -29,18 +30,25 @@ texture::textureType texture::get_type() const {
     return m_type;
 }
 
-void texture::set_solid_color_texture(const glm::vec<3, GLubyte> &rgb) {
-    GLubyte pixel[] = {rgb.x, rgb.y, rgb.z};
-    m_type = diffusion;
+void texture::set_solid_color_texture(const glm::vec<3, GLubyte> &rgb,
+                                      textureType type, GLenum tex_target) {
+    if (!target_set) {
+        m_tex_target = tex_target;
+        target_set = true;
+    }
+
+    GLubyte pixel[] = {rgb.x, rgb.y, rgb.z, 255};
+
+    m_type = type;
 
     bind();
     glad_glTexImage2D(m_tex_target, //
                       0,
-                      GL_RGB,
+                      GL_RGBA,
                       1,
                       1,
                       0,
-                      GL_RGB,
+                      GL_RGBA,
                       GL_UNSIGNED_BYTE,
                       pixel);
     unbind();

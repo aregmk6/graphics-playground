@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>
+#include <initializer_list>
 #include <iostream>
 
 using namespace amk;
@@ -69,14 +70,15 @@ shader::shader(const path &vert, const path &frag) {
     // all shaders will have a PVM uniform
     pvm_location = insert_uniform("u_pvm");
     viewPos_location = insert_uniform("u_viewPos");
-    fragPos_location = insert_uniform("u_fragPos");
     normalMatrix_location = insert_uniform("u_normalMatrix");
-    material_locations.ambient = insert_uniform("u_material.ambient");
-    material_locations.shine = insert_uniform("u_material.shine");
-    light_locations.lightPosCoord = insert_uniform("u_light.lightPosCoord");
-    light_locations.specular = insert_uniform("u_light.specular");
-    light_locations.ambient = insert_uniform("u_light.ambient");
-    light_locations.diffuse = insert_uniform("u_light.diffuse");
+    modelMatrix_location = insert_uniform("u_modelMat");
+    material_struct_location.ambient = insert_uniform("u_material.ambient");
+    material_struct_location.shine = insert_uniform("u_material.shine");
+    light_struct_location.lightPosCoord =
+        insert_uniform("u_light.lightPosCoord");
+    light_struct_location.specular = insert_uniform("u_light.specular");
+    light_struct_location.ambient = insert_uniform("u_light.ambient");
+    light_struct_location.diffuse = insert_uniform("u_light.diffuse");
     // assign samplers by convention
     assign_tex_sampler("u_material.diffuse", 0);
     assign_tex_sampler("u_material.specular", 1);
@@ -112,7 +114,7 @@ GLint shader::insert_uniform(const std::string &uni) {
     GLint uni_loc = glad_glGetUniformLocation(program_id, uni.c_str());
 
     if (uni_loc == -1) {
-        std::cerr << "uniform doesn't exist" << std::endl;
+        std::cerr << "uniform \"" << uni << "\" doesn't exist" << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -147,17 +149,60 @@ void shader::assign_float_uniform(const std::string &uni, GLfloat val) {
     assign_float_uniform(uni_location, val);
 }
 
-void shader::assign_mat_uniform(GLint uni_location, const glm::mat4 &mat) {
+void shader::assign_vec3_uniform(GLint uni_location, const glm::vec3 &v) {
+    use();
+    glad_glUniform3fv(uni_location, 1, glm::value_ptr(v));
+}
+
+void shader::assign_vec3_uniform(const std::string &uni, const glm::vec3 &v) {
+    GLint uni_location = get_uniform_location(uni);
+    assign_vec3_uniform(uni_location, v);
+}
+
+void shader::assign_mat3_uniform(GLint uni_location, const glm::mat3 &mat) {
+    use();
+    glad_glUniformMatrix3fv(uni_location, 1, GL_FALSE, glm::value_ptr(mat));
+}
+
+void shader::assign_mat3_uniform(const std::string &uni, const glm::mat3 &mat) {
+    GLint uni_location = get_uniform_location(uni);
+    assign_mat3_uniform(uni_location, mat);
+}
+
+void shader::assign_mat4_uniform(GLint uni_location, const glm::mat4 &mat) {
     use();
     glad_glUniformMatrix4fv(uni_location, 1, GL_FALSE, glm::value_ptr(mat));
 }
 
-void shader::assign_mat_uniform(const std::string &uni, const glm::mat4 &mat) {
+void shader::assign_mat4_uniform(const std::string &uni, const glm::mat4 &mat) {
     GLint uni_location = get_uniform_location(uni);
-    assign_mat_uniform(uni_location, mat);
+    assign_mat4_uniform(uni_location, mat);
 }
 
 void shader::send_PVM(const glm::mat4 &mat) {
-    use();
-    glad_glUniformMatrix4fv(pvm_location, 1, GL_FALSE, glm::value_ptr(mat));
+    assign_mat4_uniform(pvm_location, mat);
+}
+
+void shader::send_light_pos(const glm::mat4 &mat) {
+    assign_mat4_uniform(light_struct_location.lightPosCoord, mat);
+}
+
+void shader::send_model_matrix(const glm::mat4 &mat) {
+    assign_mat4_uniform(modelMatrix_location, mat);
+}
+
+void shader::send_normal_matrix(const glm::mat3 &mat) {
+    assign_mat3_uniform(normalMatrix_location, mat);
+}
+
+void shader::send_light_options(glm::vec3 ambient, glm::vec3 diffuse,
+                                glm::vec3 specular) {
+    assign_vec3_uniform(light_struct_location.ambient, ambient);
+    assign_vec3_uniform(light_struct_location.diffuse, diffuse);
+    assign_vec3_uniform(light_struct_location.specular, specular);
+}
+
+void shader::send_material_options(glm::vec3 ambient, GLfloat shine) {
+    assign_vec3_uniform(material_struct_location.ambient, ambient);
+    assign_float_uniform(material_struct_location.shine, shine);
 }

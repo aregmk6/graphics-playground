@@ -1,35 +1,41 @@
 #version 330 core
 
 struct Material {
-    vec3 ambient;
     sampler2D diffuse;
     sampler2D specular;
+    vec3 ambient;
     float shine;
 };
 
 struct Light {
     vec3 lightPosCoord;
-    vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+    vec3 ambient;
 };
 
 in vec2 TexCoord;
 in vec3 NormalCoord;
+in vec3 fragPos;
 out vec4 FragColor;
 
 uniform vec3 u_viewPos;
-uniform vec3 u_fragPos;
-uniform mat3 u_normalMatrix;
 
 uniform Material u_material;
 uniform Light u_light;
 
 void main() {
-    vec3 norm = normalize(u_normalMatrix * NormalCoord);
-    vec3 light_diraction = normalize(u_light.lightPosCoord - u_fragPos);
-    vec3 view_diraction = normalize(u_viewPos - u_fragPos);
+    vec3 retAmbient, retDiffuse, retSpecular;
+    float d, s;
+    vec3 norm = normalize(NormalCoord);
+    vec3 light_diraction = normalize(u_light.lightPosCoord - fragPos);
+    vec3 view_diraction = normalize(u_viewPos - fragPos);
     vec3 reflected_diraction = reflect(-light_diraction, norm);
+    d = max(dot(light_diraction, norm), 0.0f);
+    s = pow(max(dot(view_diraction, reflected_diraction), 0.0f), u_material.shine);
+    retAmbient = u_light.ambient * u_material.ambient;
+    retDiffuse = u_light.diffuse * (d * texture(u_material.diffuse, TexCoord).rgb);
+    retSpecular = u_light.specular * (s * texture(u_material.specular, TexCoord).rgb);
 
-    FragColor = texture(TextureData1, TexCoord);
+    FragColor = vec4(retAmbient + retDiffuse + retSpecular, 1.0f);
 }

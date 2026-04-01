@@ -9,6 +9,17 @@
 namespace amk {
 
 class model {
+  private:
+    struct material_options {
+        glm::vec3 ambient;
+        GLfloat shine;
+    };
+
+    material_options material_opt;
+
+  protected:
+    virtual void set_material_options();
+
     shader *m_cur_shader;
     cameraManager *camera;
     std::vector<mesh> meshes;
@@ -42,9 +53,28 @@ class model {
 
     void set_model_rot(const glm::vec3 &degs);
 
-    void draw_model();
+    virtual void draw_model();
 
     void draw_model(shader &s);
+};
+
+class lightModel : public model {
+  public:
+    lightModel(cameraManager &camera, shader &s);
+
+    virtual void draw_model() override;
+
+  protected:
+    virtual void set_material_options() override;
+
+  private:
+    struct light_options {
+        glm::vec3 ambient;
+        glm::vec3 diffuse;
+        glm::vec3 specular;
+    };
+
+    light_options light_opt;
 };
 
 }; // namespace amk
