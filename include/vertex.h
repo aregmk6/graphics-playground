@@ -7,6 +7,7 @@ namespace amk {
 
 struct vertex {
     glm::vec3 verPos;
+    glm::vec3 normal;
     glm::vec2 texCoord;
 };
 

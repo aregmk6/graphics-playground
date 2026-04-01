@@ -55,11 +55,31 @@ shader::shader(const path &vert, const path &frag) {
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
+    //  "u_pvm"
+    //  "u_viewPos"
+    //  "u_material.ambient"
+    //  "u_material.diffuse"
+    //  "u_material.specular"
+    //  "u_material.shine"
+    //  "u_light.lightPosCoord"
+    //  "u_light.ambient"
+    //  "u_light.diffuse"
+    //  "u_light.specular"
+
     // all shaders will have a PVM uniform
-    pvm_location = insert_uniform("u_PVM");
+    pvm_location = insert_uniform("u_pvm");
+    viewPos_location = insert_uniform("u_viewPos");
+    fragPos_location = insert_uniform("u_fragPos");
+    normalMatrix_location = insert_uniform("u_normalMatrix");
+    material_locations.ambient = insert_uniform("u_material.ambient");
+    material_locations.shine = insert_uniform("u_material.shine");
+    light_locations.lightPosCoord = insert_uniform("u_light.lightPosCoord");
+    light_locations.specular = insert_uniform("u_light.specular");
+    light_locations.ambient = insert_uniform("u_light.ambient");
+    light_locations.diffuse = insert_uniform("u_light.diffuse");
     // assign samplers by convention
-    assign_tex_sampler("TextureData1", 0);
-    assign_tex_sampler("TextureData2", 1);
+    assign_tex_sampler("u_material.diffuse", 0);
+    assign_tex_sampler("u_material.specular", 1);
 }
 
 GLuint shader::get_id() const {

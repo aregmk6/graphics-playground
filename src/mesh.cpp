@@ -7,6 +7,7 @@ static constexpr int diffuse_idx = 0;
 static constexpr int specular_idx = 1;
 
 std::vector<amk::vertex> get_vertex_data();
+std::vector<amk::vertex> get_solid_color_vertex_data();
 std::vector<GLuint> get_index_data();
 
 mesh::mesh()
@@ -16,6 +17,11 @@ mesh::mesh()
     m_textures[0].set_parameters(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_LINEAR);
     m_textures[1].set_parameters(
         GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER, GL_NEAREST, GL_LINEAR);
+}
+
+mesh::mesh(const glm::vec<3, GLubyte> &rgb) {
+    m_textures.push_back(texture("./textures/bricks.jpg", texture::diffusion));
+    m_textures[0].set_parameters(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
 }
 
 mesh::mesh(const std::vector<vertex> &vertices,  //
@@ -58,37 +64,122 @@ std::vector<GLuint> get_index_data() {
 
 std::vector<amk::vertex> get_vertex_data() {
     // for now I'll hardcode it.
-    std::vector<amk::vertex> //
-        vertcies{
-            {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // top right
-            {{0.5f, -0.5f, 0.5f}, {1.0f, 0.0f}},  // bottom right
-            {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}}, // bottom left
-            {{-0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}},  // top left
+    std::vector<glm::vec3> //
+        pos{
+            {0.5f, 0.5f, 0.5f},   // top right
+            {0.5f, -0.5f, 0.5f},  // bottom right
+            {-0.5f, -0.5f, 0.5f}, // bottom left
+            {-0.5f, 0.5f, 0.5f},  // top left
 
-            {{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}},   // top right
-            {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}},  // bottom right
-            {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}}, // bottom left
-            {{-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f}},  // top left
+            {0.5f, 0.5f, -0.5f},   // top right
+            {0.5f, -0.5f, -0.5f},  // bottom right
+            {-0.5f, -0.5f, -0.5f}, // bottom left
+            {-0.5f, 0.5f, -0.5f},  // top left
 
-            {{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}},  // top right
-            {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}}, // bottom right
-            {{0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}},  // bottom left
-            {{0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}},   // top left
+            {0.5f, 0.5f, -0.5f},  // top right
+            {0.5f, -0.5f, -0.5f}, // bottom right
+            {0.5f, -0.5f, 0.5f},  // bottom left
+            {0.5f, 0.5f, 0.5f},   // top left
 
-            {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}},  // top right
-            {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}}, // bottom right
-            {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}},  // bottom left
-            {{-0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}},   // top left
+            {-0.5f, 0.5f, -0.5f},  // top right
+            {-0.5f, -0.5f, -0.5f}, // bottom right
+            {-0.5f, -0.5f, 0.5f},  // bottom left
+            {-0.5f, 0.5f, 0.5f},   // top left
 
-            {{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}},  // top right
-            {{0.5f, 0.5f, 0.5f}, {1.0f, 0.0f}},   // bottom right
-            {{-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f}},  // bottom left
-            {{-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f}}, // top left
+            {0.5f, 0.5f, -0.5f},  // top right
+            {0.5f, 0.5f, 0.5f},   // bottom right
+            {-0.5f, 0.5f, 0.5f},  // bottom left
+            {-0.5f, 0.5f, -0.5f}, // top left
 
-            {{0.5f, -0.5f, -0.5f}, {1.0f, 1.0f}}, // top right
-            {{0.5f, -0.5f, 0.5f}, {1.0f, 0.0f}},  // bottom right
-            {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}}, // bottom left
-            {{-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f}} // top left
+            {0.5f, -0.5f, -0.5f}, // top right
+            {0.5f, -0.5f, 0.5f},  // bottom right
+            {-0.5f, -0.5f, 0.5f}, // bottom left
+            {-0.5f, -0.5f, -0.5f} // top left
         };
-    return vertcies;
+
+    std::vector<glm::vec3> normals;
+    for (auto it = pos.begin(); it != pos.end(); it += 4) {
+        glm::vec3 x{*it - *(it + 1)};
+        glm::vec3 y{*it - *(it + 2)};
+        for (int i = 0; i < 4; ++i) {
+            normals.push_back(glm::cross(x, y));
+        }
+    }
+
+    std::vector<glm::vec2> texCoord{
+        {1.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f},
+
+        {1.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f},
+
+        {1.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f},
+
+        {1.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f},
+
+        {1.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f},
+
+        {1.0f, 1.0f}, {1.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f}};
+
+    std::vector<vertex> vertices;
+    for (int i = 0; i < pos.size(); ++i) {
+        vertices.push_back({pos[i], normals[i], texCoord[i]});
+    }
+
+    return vertices;
+}
+
+std::vector<amk::vertex> get_solid_color_vertex_data() {
+    // for now I'll hardcode it.
+    std::vector<glm::vec3> //
+        pos{
+            {0.5f, 0.5f, 0.5f},   // top right
+            {0.5f, -0.5f, 0.5f},  // bottom right
+            {-0.5f, -0.5f, 0.5f}, // bottom left
+            {-0.5f, 0.5f, 0.5f},  // top left
+
+            {0.5f, 0.5f, -0.5f},   // top right
+            {0.5f, -0.5f, -0.5f},  // bottom right
+            {-0.5f, -0.5f, -0.5f}, // bottom left
+            {-0.5f, 0.5f, -0.5f},  // top left
+
+            {0.5f, 0.5f, -0.5f},  // top right
+            {0.5f, -0.5f, -0.5f}, // bottom right
+            {0.5f, -0.5f, 0.5f},  // bottom left
+            {0.5f, 0.5f, 0.5f},   // top left
+
+            {-0.5f, 0.5f, -0.5f},  // top right
+            {-0.5f, -0.5f, -0.5f}, // bottom right
+            {-0.5f, -0.5f, 0.5f},  // bottom left
+            {-0.5f, 0.5f, 0.5f},   // top left
+
+            {0.5f, 0.5f, -0.5f},  // top right
+            {0.5f, 0.5f, 0.5f},   // bottom right
+            {-0.5f, 0.5f, 0.5f},  // bottom left
+            {-0.5f, 0.5f, -0.5f}, // top left
+
+            {0.5f, -0.5f, -0.5f}, // top right
+            {0.5f, -0.5f, 0.5f},  // bottom right
+            {-0.5f, -0.5f, 0.5f}, // bottom left
+            {-0.5f, -0.5f, -0.5f} // top left
+        };
+
+    std::vector<glm::vec3> normals;
+    for (auto it = pos.begin(); it != pos.end(); it += 4) {
+        glm::vec3 x{*it - *(it + 1)};
+        glm::vec3 y{*it - *(it + 2)};
+        for (int i = 0; i < 4; ++i) {
+            normals.push_back(glm::cross(x, y));
+        }
+    }
+
+    std::vector<glm::vec2> texCoord;
+    for (int i = 0; i < pos.size(); ++i) {
+        texCoord.push_back({0.0f, 0.0f});
+    }
+
+    std::vector<vertex> vertices;
+    for (int i = 0; i < pos.size(); ++i) {
+        vertices.push_back({pos[i], normals[i], texCoord[i]});
+    }
+
+    return vertices;
 }

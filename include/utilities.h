@@ -3,7 +3,6 @@
 
 #include <glm/glm.hpp>
 #include <iostream>
-#include <vector>
 
 #define ERR_CHECK(arg, name)                                                   \
     do {                                                                       \

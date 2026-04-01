@@ -14,7 +14,6 @@
 #include <vector>
 
 static GLfloat lastFrameTime = 0.0f;
-static GLfloat mix_ratio = 0.0f;
 static GLfloat rotation_deg = 0.0f;
 
 static amk::cameraManager camera;
@@ -29,19 +28,21 @@ int main() {
     amk::shader shader("./shaders/shader.vert", "./shaders/shader.frag");
     amk::model model{camera, shader};
 
-    GLuint mixLoc = shader.insert_uniform("u_mix");
+    /* ---------------------------- loop ---------------------------- */
+
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         process_input(window);
 
-        shader.assign_float_uniform(mixLoc, mix_ratio);
         draw_map(shader, model);
 
         /* getting ready for next frame */
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    /* -------------------------------------------------------------- */
 
     destroy_renderer(window);
     return 0;

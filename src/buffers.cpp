@@ -81,7 +81,8 @@ void VAO::add_vbo(VBO &vbo) {
     constexpr GLuint vec3size = 3;
     constexpr GLuint vec2size = 2;
     constexpr GLuint coordIdx = 0;
-    constexpr GLuint texIdx = 1;
+    constexpr GLuint normalIdx = 1;
+    constexpr GLuint texIdx = 2;
 
     /* bind VAO first */
     bind();
@@ -90,6 +91,13 @@ void VAO::add_vbo(VBO &vbo) {
     glVertexAttribPointer(
         coordIdx, vec3size, GL_FLOAT, GL_FALSE, sizeof(vertex), (void *)0);
     glEnableVertexAttribArray(coordIdx);
+    glVertexAttribPointer(normalIdx,
+                          vec3size,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          sizeof(vertex),
+                          (void *)(offsetof(vertex, normal)));
+    glEnableVertexAttribArray(normalIdx);
     glVertexAttribPointer(texIdx,
                           vec2size,
                           GL_FLOAT,

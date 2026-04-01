@@ -3,6 +3,7 @@
 
 #include "glad/glad.h"
 #include <filesystem>
+#include <glm/glm.hpp>
 
 namespace amk {
 
@@ -14,10 +15,14 @@ class texture {
 
     texture();
 
+    texture(const glm::vec<3, GLubyte> &rgb);
+
     texture(const path &p, textureType type, GLenum tex_target = GL_TEXTURE_2D);
 
     GLuint id() const;
     textureType get_type() const;
+
+    void set_solid_color_texture(const glm::vec<3, GLubyte> &rgb);
 
     void set_texture(const path &p, textureType type,
                      GLenum tex_target = GL_TEXTURE_2D);

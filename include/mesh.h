@@ -18,6 +18,7 @@ class mesh {
 
   public:
     mesh();
+    mesh(const glm::vec<3, GLubyte> &rgb);
     mesh(const std::vector<vertex> &vertices, //
          const std::vector<GLuint> &indices,  //
          const std::vector<texture> &textures);

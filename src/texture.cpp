@@ -11,6 +11,11 @@ texture::texture() {
     glad_glGenTextures(1, &texture_id);
 };
 
+texture::texture(const glm::vec<3, GLubyte> &rgb) {
+    glad_glGenTextures(1, &texture_id);
+    set_solid_color_texture(rgb);
+};
+
 texture::texture(const path &p, textureType type, GLenum tex_target) {
     glad_glGenTextures(1, &texture_id);
     set_texture(p, type, tex_target);
@@ -22,6 +27,23 @@ GLuint texture::id() const {
 
 texture::textureType texture::get_type() const {
     return m_type;
+}
+
+void texture::set_solid_color_texture(const glm::vec<3, GLubyte> &rgb) {
+    GLubyte pixel[] = {rgb.x, rgb.y, rgb.z};
+    m_type = diffusion;
+
+    bind();
+    glad_glTexImage2D(m_tex_target, //
+                      0,
+                      GL_RGB,
+                      1,
+                      1,
+                      0,
+                      GL_RGB,
+                      GL_UNSIGNED_BYTE,
+                      pixel);
+    unbind();
 }
 
 void texture::set_texture(const path &p, textureType type, GLenum tex_target) {
@@ -69,8 +91,6 @@ void texture::set_texture(const path &p, textureType type, GLenum tex_target) {
         external_format = GL_RGB;
         break;
     }
-
-    std::cout << channel_nr << std::endl;
 
     glad_glTexImage2D(m_tex_target, //
                       0,
