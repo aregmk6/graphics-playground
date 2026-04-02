@@ -3,6 +3,9 @@
 #include "camera.h"
 #include "glad/glad.h"
 #include "glm/ext/vector_float3.hpp"
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 #include "model.h"
 #include "shaders.h"
 #include "stb_image.h"
@@ -19,21 +22,19 @@
 static GLfloat lastFrameTime = 0.0f;
 static GLfloat x_rotation_deg = 0.0f;
 static GLfloat y_rotation_deg = 0.0f;
-static GLfloat mix_ratio = 0.0f;
 
 static amk::cameraManager camera;
-static GLFWwindow *initialize_renderer();
-static void destroy_renderer(GLFWwindow *window);
+static GLFWwindow *startup();
+static void shutdown(GLFWwindow *window);
 static void process_input(GLFWwindow *window);
 static void draw_map(amk::shader &shader, amk::model &model);
 
 int main() {
-    GLFWwindow *window = initialize_renderer();
+    GLFWwindow *window = startup();
     amk::callbackManager callback_manager{window, camera};
     amk::shader shader("./shaders/shader.vert", "./shaders/shader.frag");
-    std::cout << "shader done" << std::endl;
     amk::lightShader emissive("./shaders/light.vert", "./shaders/light.frag");
-    std::cout << "emissive done" << std::endl;
+
     auto light = std::make_unique<amk::lightModel>(camera, emissive);
     auto material1 =
         std::make_unique<amk::model>(camera, shader, amk::mesh{{255, 255, 0}});
@@ -65,11 +66,77 @@ int main() {
 
     models[0]->set_model_scale({0.5f, 0.5f, 0.5f});
 
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
+    bool show_demo_window = false;
+    bool show_another_window = false;
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
     /* ---------------------------- loop ---------------------------- */
 
+    static float f = 0.0f;
+    static int counter = 0;
     while (!glfwWindowShouldClose(window)) {
-        glClearColor(0.0f, 0.2f, 0.2f, 1.0f);
+        glfwPollEvents();
+        glClearColor(
+            clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        if (show_demo_window) ImGui::ShowDemoWindow(&show_demo_window);
+
+        // 2. Show a simple window that we create ourselves. We use a Begin/End
+        // pair to create a named window.
+        {
+
+            ImGui::Begin("Hello, world!"); // Create a window called "Hello,
+                                           // world!" and append into it.
+
+            ImGui::Text(
+                "This is some useful text."); // Display some text (you can use
+                                              // a format strings too)
+            ImGui::Checkbox("Demo Window",
+                            &show_demo_window); // Edit bools storing our window
+                                                // open/close state
+            ImGui::Checkbox("Another Window", &show_another_window);
+
+            ImGui::SliderFloat(
+                "float",
+                &f,
+                0.0f,
+                1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::ColorEdit3(
+                "clear color",
+                (float *)&clear_color); // Edit 3 floats representing a color
+
+            if (ImGui::Button(
+                    "Button")) // Buttons return true when clicked (most widgets
+                               // return true when edited/activated)
+                counter++;
+            ImGui::SameLine();
+            ImGui::Text("counter = %d", counter);
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+                        1000.0f / io.Framerate,
+                        io.Framerate);
+            ImGui::End();
+        }
+
+        // 3. Show another simple window.
+        if (show_another_window) {
+            ImGui::Begin(
+                "Another Window",
+                &show_another_window); // Pass a pointer to our bool variable
+                                       // (the window will have a closing button
+                                       // that will clear the bool when clicked)
+            ImGui::Text("Hello from another window!");
+            if (ImGui::Button("Close Me")) show_another_window = false;
+            ImGui::End();
+        }
 
         process_input(window);
 
@@ -84,27 +151,20 @@ int main() {
             indx = (indx + 1) % models.size();
         }
 
-        /* getting ready for next frame */
+        // ImGui rendering
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(window);
-        glfwPollEvents();
     }
 
     /* -------------------------------------------------------------- */
 
-    destroy_renderer(window);
+    shutdown(window);
     return 0;
 }
 
-// const std::vector<glm::vec3> model_pos{{-1.0f, 0.0f, -1.0f},
-//                                        {0.0f, 0.0f, -3.0f},
-//                                        {1.0f, 1.0f, -0.5f},
-//                                        {4.0f, 2.0f, -9.0f},
-//                                        {8.0f, 3.0f, -1.5f},
-//                                        {2.0f, -4.0f, -0.5f},
-//                                        {3.0f, 6.0f, -0.5f},
-//                                        {-5.0f, 10.0f, 3.0f}};
-
-GLFWwindow *initialize_renderer() {
+GLFWwindow *startup() {
     ERR_CHECK(glfwInit(), "GLFW Init");
     GLFWwindow *window = glfwCreateWindow(window_width, //
                                           window_height,
@@ -116,11 +176,26 @@ GLFWwindow *initialize_renderer() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glad_glEnable(GL_DEPTH_TEST);
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    io.ConfigFlags |=
+        ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(
+        window, true); // Second param install_callback=true will install
+                       // GLFW callbacks and chain to existing ones.
+    ImGui_ImplOpenGL3_Init();
 
     return window;
 }
 
-void destroy_renderer(GLFWwindow *window) {
+void shutdown(GLFWwindow *window) {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwDestroyWindow(window);
     glfwTerminate();
 }
@@ -133,16 +208,9 @@ void process_input(GLFWwindow *window) {
     camera.update_cam_pos(window, dt);
 
     // per model logic
-    if (glfwGetKey(window, GLFW_KEY_PERIOD) == GLFW_PRESS) {
-        mix_ratio += 0.01f;
-        if (mix_ratio >= 1.0f) mix_ratio = 1.0f;
-    } else if (glfwGetKey(window, GLFW_KEY_COMMA) == GLFW_PRESS) {
-        mix_ratio -= 0.01f;
-        if (mix_ratio <= 0.0f) mix_ratio = 0.0f;
-    }
-    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
         x_rotation_deg += 5.0f;
-    } else if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
+    } else if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
         x_rotation_deg -= 5.0f;
     }
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {

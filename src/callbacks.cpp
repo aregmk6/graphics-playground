@@ -31,6 +31,17 @@ void callbackManager::key_callback(GLFWwindow *window, int key, int scancode,
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
+    if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+        int mode = glfwGetInputMode(window, GLFW_CURSOR);
+        switch (mode) {
+        case GLFW_CURSOR_NORMAL:
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            break;
+        case GLFW_CURSOR_DISABLED:
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            break;
+        }
+    }
 }
 
 void callbackManager::mouse_pos_callback(GLFWwindow *window, double xpos,

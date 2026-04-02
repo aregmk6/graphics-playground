@@ -5,11 +5,16 @@ project(graphics-programming C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-
 add_executable(jump main.cpp)
 
 target_link_libraries(jump glfw)
-target_include_directories(jump PRIVATE include/)
+target_include_directories(jump PRIVATE include/
+				PRIVATE vendor/
+				PRIVATE vendor/imgui/
+				PRIVATE vendor/imgui/backends/
+)
 target_compile_definitions(jump PRIVATE PROJECT_ROOT_PATH="${CMAKE_SOURCE_DIR}")
 
-add_subdirectory(src)
+add_subdirectory(src/)
+add_subdirectory(vendor/imgui/)
+

@@ -4,6 +4,12 @@
 using namespace amk;
 
 void cameraManager::update_cam_pos(GLFWwindow *const window, GLfloat dt) {
+    GLfloat camera_speed;
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        camera_speed = base_camera_speed * sprint_multiplier;
+    } else {
+        camera_speed = base_camera_speed;
+    }
     GLfloat dx = dt * camera_speed;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         cameraPos += dx * cameraFront;

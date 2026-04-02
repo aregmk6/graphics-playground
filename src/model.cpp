@@ -121,14 +121,14 @@ glm::mat4 model::calc_model_mat() const {
 }
 
 void model::set_options() {
-    material_opt.ambient = glm::vec3(0.2f);
+    material_opt.ambient = glm::vec3(1.0f);
     material_opt.shine = 32.0f;
 }
 
 /* ------------------------ light model ------------------------ */
 
 void lightModel::set_options() {
-    light_opt.ambient = glm::vec3(0.2f);
+    light_opt.ambient = glm::vec3(0.1f);
     light_opt.diffuse = glm::vec3(0.7f);
     light_opt.specular = glm::vec3(0.5f);
 }

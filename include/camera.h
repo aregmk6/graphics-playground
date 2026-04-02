@@ -20,7 +20,8 @@ class cameraManager {
     GLfloat close = 0.1f;
     GLfloat far = 100.0f;
     GLfloat rotation_deg = 0.0f;
-    GLfloat camera_speed = 5.0f;
+    GLfloat base_camera_speed = 7.0f;
+    GLfloat sprint_multiplier = 3.0f;
     GLfloat lastx = 400;
     GLfloat lasty = 300;
     GLfloat pitch = 0.0f;
