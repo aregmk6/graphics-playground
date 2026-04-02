@@ -66,15 +66,17 @@ int main() {
 
     models[0]->set_model_scale({0.5f, 0.5f, 0.5f});
 
+    static constexpr GLfloat R = 61.0f / 255.0f, G = 190.0f / 255.0f, B = 1.0f;
+
     ImGuiIO &io = ImGui::GetIO();
     (void)io;
     bool show_demo_window = false;
     bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clear_color = ImVec4(R, G, B, 1.00f);
 
     /* ---------------------------- loop ---------------------------- */
 
-    static float f = 0.0f;
+    static float *f = camera.get_fov_ptr();
     static int counter = 0;
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -106,9 +108,9 @@ int main() {
 
             ImGui::SliderFloat(
                 "float",
-                &f,
-                0.0f,
-                1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
+                f,
+                1.0f,
+                90.0f); // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::ColorEdit3(
                 "clear color",
                 (float *)&clear_color); // Edit 3 floats representing a color

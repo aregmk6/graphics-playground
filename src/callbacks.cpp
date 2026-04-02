@@ -36,8 +36,10 @@ void callbackManager::key_callback(GLFWwindow *window, int key, int scancode,
         switch (mode) {
         case GLFW_CURSOR_NORMAL:
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            mouse_on = true;
             break;
         case GLFW_CURSOR_DISABLED:
+            mouse_on = false;
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             break;
         }
@@ -46,11 +48,18 @@ void callbackManager::key_callback(GLFWwindow *window, int key, int scancode,
 
 void callbackManager::mouse_pos_callback(GLFWwindow *window, double xpos,
                                          double ypos) {
-    cam->update_cam_front(window, xpos, ypos);
+    if (mouse_on) {
+        if (inside) {
+            cam->set_last_coords(xpos, ypos);
+            inside = false;
+        }
+        cam->update_cam_front(window, xpos, ypos);
+    }
 }
 
 void callbackManager::mouse_enter_callback(GLFWwindow *window, int entered) {
     if (entered) {
+        inside = true;
         std::cout << "entered window" << std::endl;
     }
 }

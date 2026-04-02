@@ -10,6 +10,20 @@
 namespace amk {
 
 class cameraManager {
+  public:
+    void update_cam_pos(GLFWwindow *const window, GLfloat dt);
+
+    void update_cam_front(GLFWwindow *const window, double xpos, double ypos);
+
+    GLfloat *const get_fov_ptr();
+
+    glm::vec3 get_cam_pos() const;
+
+    glm::mat4 get_PV();
+
+    void set_last_coords(GLfloat x, GLfloat y);
+
+  private:
     static constexpr glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
     glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -32,15 +46,6 @@ class cameraManager {
         glm::perspective(fov, aspecty / aspectx, close, far);
 
     glm::mat4 mat_view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
-
-  public:
-    void update_cam_pos(GLFWwindow *const window, GLfloat dt);
-
-    void update_cam_front(GLFWwindow *const window, double xpos, double ypos);
-
-    glm::vec3 get_cam_pos() const;
-
-    glm::mat4 get_PV();
 };
 
 } // namespace amk

@@ -9,6 +9,8 @@ namespace amk {
 class callbackManager {
     inline static cameraManager *cam = nullptr;
     inline static GLFWwindow *win = nullptr;
+    inline static bool inside = false;
+    inline static bool mouse_on = true;
 
   public:
     callbackManager(GLFWwindow *window, cameraManager &camera);

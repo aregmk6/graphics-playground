@@ -46,9 +46,19 @@ void cameraManager::update_cam_front(GLFWwindow *const window, double xpos,
 
 glm::mat4 cameraManager::get_PV() {
     mat_view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
+    mat_perspect = glm::perspective(fov, aspecty / aspectx, close, far);
     return mat_perspect * mat_view;
 }
 
 glm::vec3 cameraManager::get_cam_pos() const {
     return cameraPos;
+}
+
+GLfloat *const cameraManager::get_fov_ptr() {
+    return &fov;
+}
+
+void cameraManager::set_last_coords(GLfloat x, GLfloat y) {
+    lastx = x;
+    lasty = y;
 }
