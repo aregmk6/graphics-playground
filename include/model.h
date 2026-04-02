@@ -8,6 +8,8 @@
 
 namespace amk {
 
+class lightModel;
+
 class model {
   private:
     struct material_options {
@@ -16,9 +18,10 @@ class model {
     };
 
     material_options material_opt;
+    std::vector<const lightModel *> lightModels;
 
   protected:
-    virtual void set_material_options();
+    virtual void set_options();
 
     shader *m_cur_shader;
     cameraManager *camera;
@@ -56,6 +59,8 @@ class model {
     virtual void draw_model();
 
     void draw_model(shader &s);
+
+    void add_light_model(const lightModel &lm);
 };
 
 class lightModel : public model {
@@ -65,7 +70,7 @@ class lightModel : public model {
     virtual void draw_model() override;
 
   protected:
-    virtual void set_material_options() override;
+    virtual void set_options() override;
 
   private:
     struct light_options {
@@ -75,6 +80,9 @@ class lightModel : public model {
     };
 
     light_options light_opt;
+
+  public:
+    const light_options &get_light_options() const;
 };
 
 }; // namespace amk

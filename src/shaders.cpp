@@ -28,6 +28,8 @@ void shader::get_shader_data(const path &p) const {
     ifs.close();
 }
 
+shader::shader() = default;
+
 shader::shader(const path &vert, const path &frag) {
     path project_root = path(PROJECT_ROOT_PATH);
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -66,7 +68,10 @@ shader::shader(const path &vert, const path &frag) {
     //  "u_light.ambient"
     //  "u_light.diffuse"
     //  "u_light.specular"
+    assign_uniforms();
+}
 
+void shader::assign_uniforms() {
     // all shaders will have a PVM uniform
     pvm_location = insert_uniform("u_pvm");
     viewPos_location = insert_uniform("u_viewPos");
@@ -179,12 +184,16 @@ void shader::assign_mat4_uniform(const std::string &uni, const glm::mat4 &mat) {
     assign_mat4_uniform(uni_location, mat);
 }
 
-void shader::send_PVM(const glm::mat4 &mat) {
+void shader::send_pvm(const glm::mat4 &mat) {
     assign_mat4_uniform(pvm_location, mat);
 }
 
-void shader::send_light_pos(const glm::mat4 &mat) {
-    assign_mat4_uniform(light_struct_location.lightPosCoord, mat);
+void shader::send_light_pos(const glm::vec3 &pos) {
+    assign_vec3_uniform(light_struct_location.lightPosCoord, pos);
+}
+
+void shader::send_view_pos(const glm::vec3 &pos) {
+    assign_vec3_uniform(viewPos_location, pos);
 }
 
 void shader::send_model_matrix(const glm::mat4 &mat) {
@@ -205,4 +214,54 @@ void shader::send_light_options(glm::vec3 ambient, glm::vec3 diffuse,
 void shader::send_material_options(glm::vec3 ambient, GLfloat shine) {
     assign_vec3_uniform(material_struct_location.ambient, ambient);
     assign_float_uniform(material_struct_location.shine, shine);
+}
+
+lightShader::lightShader(const std::filesystem::path &vert,
+                         const std::filesystem::path &frag)
+    : shader() {
+    path project_root = path(PROJECT_ROOT_PATH);
+    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    program_id = glCreateProgram();
+    int error_res_check = 1;
+
+    get_shader_data(project_root / vert);
+    glShaderSource(vertexShader, 1, &shader_src_ptr, NULL);
+    glCompileShader(vertexShader);
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &error_res_check);
+    ERR_CHECK(error_res_check, "vertex shader compile");
+
+    get_shader_data(project_root / frag);
+    glShaderSource(fragmentShader, 1, &shader_src_ptr, NULL);
+    glCompileShader(fragmentShader);
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &error_res_check);
+    ERR_CHECK(error_res_check, "fragment shader compile");
+
+    glAttachShader(program_id, vertexShader);
+    glAttachShader(program_id, fragmentShader);
+    glLinkProgram(program_id);
+    glGetProgramiv(program_id, GL_LINK_STATUS, &error_res_check);
+    ERR_CHECK(error_res_check, "program link");
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    //  "u_pvm"
+    //  "u_viewPos"
+    //  "u_material.ambient"
+    //  "u_material.diffuse"
+    //  "u_material.specular"
+    //  "u_material.shine"
+    //  "u_light.lightPosCoord"
+    //  "u_light.ambient"
+    //  "u_light.diffuse"
+    //  "u_light.specular"
+    assign_uniforms();
+}
+
+void lightShader::assign_uniforms() {
+    // all shaders will have a PVM uniform
+    pvm_location = insert_uniform("u_pvm");
+    // assign samplers by convention
+    assign_tex_sampler("u_solidTex", 0);
 }

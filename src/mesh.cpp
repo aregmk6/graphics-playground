@@ -1,4 +1,6 @@
 #include "mesh.h"
+#include "glm/ext/quaternion_geometric.hpp"
+#include "glm/ext/vector_float3.hpp"
 #include "texture.h"
 
 using namespace amk;
@@ -19,7 +21,8 @@ mesh::mesh()
         GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER, GL_NEAREST, GL_LINEAR);
 }
 
-mesh::mesh(const glm::vec<3, GLubyte> &rgb) {
+mesh::mesh(const glm::vec<3, GLubyte> &rgb)
+    : m_vbo(get_vertex_data()), m_ebo(get_index_data()), m_vao(m_vbo, m_ebo) {
     m_textures.push_back(texture(rgb, texture::diffusion));
     m_textures.push_back(texture(rgb, texture::specular));
     m_textures[0].set_parameters(GL_REPEAT, GL_REPEAT, GL_NEAREST, GL_NEAREST);
@@ -99,12 +102,16 @@ std::vector<amk::vertex> get_vertex_data() {
             {-0.5f, -0.5f, -0.5f} // top left
         };
 
-    std::vector<glm::vec3> normals;
+    std::vector<glm::vec3> normals{};
+    glm::vec3 norm{0.0f};
     for (auto it = pos.begin(); it != pos.end(); it += 4) {
-        glm::vec3 x{*it - *(it + 1)};
-        glm::vec3 y{*it - *(it + 2)};
+        norm = glm::vec3{0.0f};
         for (int i = 0; i < 4; ++i) {
-            normals.push_back(glm::cross(x, y));
+            norm += *(it + i);
+        }
+        norm /= 4.0f;
+        for (int i = 0; i < 4; ++i) {
+            normals.push_back(glm::normalize(norm));
         }
     }
 
@@ -164,12 +171,16 @@ std::vector<amk::vertex> get_solid_color_vertex_data() {
             {-0.5f, -0.5f, -0.5f} // top left
         };
 
-    std::vector<glm::vec3> normals;
+    std::vector<glm::vec3> normals{};
+    glm::vec3 norm{0.0f};
     for (auto it = pos.begin(); it != pos.end(); it += 4) {
-        glm::vec3 x{*it - *(it + 1)};
-        glm::vec3 y{*it - *(it + 2)};
+        norm = glm::vec3{0.0f};
         for (int i = 0; i < 4; ++i) {
-            normals.push_back(glm::cross(x, y));
+            norm += *(it + i);
+        }
+        norm /= 4.0f;
+        for (int i = 0; i < 4; ++i) {
+            normals.push_back(glm::normalize(norm));
         }
     }
 

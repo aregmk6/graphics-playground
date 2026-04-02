@@ -12,10 +12,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <memory>
+#include <utility>
 #include <vector>
 
 static GLfloat lastFrameTime = 0.0f;
-static GLfloat rotation_deg = 0.0f;
+static GLfloat x_rotation_deg = 0.0f;
+static GLfloat y_rotation_deg = 0.0f;
 static GLfloat mix_ratio = 0.0f;
 
 static amk::cameraManager camera;
@@ -28,24 +31,57 @@ int main() {
     GLFWwindow *window = initialize_renderer();
     amk::callbackManager callback_manager{window, camera};
     amk::shader shader("./shaders/shader.vert", "./shaders/shader.frag");
-    amk::model material{camera, shader, amk::mesh{{200, 200, 200}}};
-    amk::lightModel light{camera, shader};
-    std::vector<amk::model> models{material, light};
+    std::cout << "shader done" << std::endl;
+    amk::lightShader emissive("./shaders/light.vert", "./shaders/light.frag");
+    std::cout << "emissive done" << std::endl;
+    auto light = std::make_unique<amk::lightModel>(camera, emissive);
+    auto material1 =
+        std::make_unique<amk::model>(camera, shader, amk::mesh{{255, 255, 0}});
+    auto material2 =
+        std::make_unique<amk::model>(camera, shader, amk::mesh{{255, 0, 0}});
+    auto material3 =
+        std::make_unique<amk::model>(camera, shader, amk::mesh{{0, 255, 0}});
+    auto material4 =
+        std::make_unique<amk::model>(camera, shader, amk::mesh{{0, 0, 255}});
+    material1->add_light_model(*light);
+    material2->add_light_model(*light);
+    material3->add_light_model(*light);
+    material4->add_light_model(*light);
+    std::vector<std::unique_ptr<amk::model>> models;
+    models.push_back(std::move(light));
+    models.push_back(std::move(material1));
+    models.push_back(std::move(material2));
+    models.push_back(std::move(material3));
+    models.push_back(std::move(material4));
+
+    static constexpr glm::vec3 pos[] = {
+        {0.0f, 5.0f, 0.0f},
+        {0.0f, 0.0f, -5.0f},
+        {5.0f, 0.0f, 0.0f},
+        {-5.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 5.0f},
+
+    };
+
+    models[0]->set_model_scale({0.5f, 0.5f, 0.5f});
 
     /* ---------------------------- loop ---------------------------- */
-    static constexpr glm::vec3 pos[] = {{-1.0f, 0.0f, -1.0f},
-                                        {0.0f, 0.0f, -3.0f}};
 
     while (!glfwWindowShouldClose(window)) {
+        glClearColor(0.0f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         process_input(window);
 
         int indx = 0;
         for (auto &model : models) {
-            model.set_model_pos(pos[indx++]);
-            model.set_model_rot(rotation_deg, amk::model::x);
-            model.draw_model(shader);
+            model->set_model_pos(pos[indx]);
+            if (indx != 0) {
+                model->set_model_rot(x_rotation_deg, amk::model::x);
+                model->set_model_rot(y_rotation_deg, amk::model::y);
+            }
+            model->draw_model();
+            indx = (indx + 1) % models.size();
         }
 
         /* getting ready for next frame */
@@ -104,9 +140,14 @@ void process_input(GLFWwindow *window) {
         mix_ratio -= 0.01f;
         if (mix_ratio <= 0.0f) mix_ratio = 0.0f;
     }
-    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
-        rotation_deg += 5.0f;
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
+        x_rotation_deg += 5.0f;
     } else if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
-        rotation_deg -= 5.0f;
+        x_rotation_deg -= 5.0f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
+        y_rotation_deg += 5.0f;
+    } else if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
+        y_rotation_deg -= 5.0f;
     }
 }

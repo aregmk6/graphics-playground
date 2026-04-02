@@ -42,3 +42,7 @@ glm::mat4 cameraManager::get_PV() {
     mat_view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
     return mat_perspect * mat_view;
 }
+
+glm::vec3 cameraManager::get_cam_pos() const {
+    return cameraPos;
+}

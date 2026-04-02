@@ -37,6 +37,8 @@ class cameraManager {
 
     void update_cam_front(GLFWwindow *const window, double xpos, double ypos);
 
+    glm::vec3 get_cam_pos() const;
+
     glm::mat4 get_PV();
 };
 

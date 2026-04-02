@@ -16,7 +16,7 @@ model::model(cameraManager &camera, shader &s) //
       m_scale(1.0f),                           //
       m_axis_rotations(0.0f),                  //
       m_pos(0.0f) {
-    set_material_options();
+    set_options();
 }
 
 model::model(cameraManager &camera, shader &s, const mesh &m) //
@@ -26,7 +26,7 @@ model::model(cameraManager &camera, shader &s, const mesh &m) //
       m_scale(1.0f),                                          //
       m_axis_rotations(0.0f),                                 //
       m_pos(0.0f) {
-    set_material_options();
+    set_options();
     add_mesh(m);
 }
 
@@ -37,7 +37,7 @@ model::model(cameraManager &camera, shader &s, const std::vector<mesh> &m_v)
       m_scale(1.0f),          //
       m_axis_rotations(0.0f), //
       m_pos(0.0f) {
-    set_material_options();
+    set_options();
     add_mesh(m_v);
 }
 
@@ -78,11 +78,25 @@ void model::set_model_rot(const glm::vec3 &degs) {
 void model::draw_model() {
     glm::mat4 model_mat = calc_model_mat();
     glm::mat3 inv_trans_model_mat = glm::transpose(glm::inverse(model_mat));
+
+    /* diffuse and specular values are sent through the texture */
     m_cur_shader->send_material_options(material_opt.ambient,
-                                        material_opt.shine);
-    m_cur_shader->send_model_matrix(model_mat);
-    m_cur_shader->send_normal_matrix(inv_trans_model_mat);
-    m_cur_shader->send_PVM(camera->get_PV() * model_mat);
+                                        material_opt.shine); // options
+    m_cur_shader->send_normal_matrix(inv_trans_model_mat);   // for normal calc
+
+    m_cur_shader->send_model_matrix(model_mat);         // for specular
+    m_cur_shader->send_view_pos(camera->get_cam_pos()); // for specular
+
+    for (const auto &lm : lightModels) {
+        // light model details:
+        m_cur_shader->send_light_options(lm->get_light_options().ambient,
+                                         lm->get_light_options().diffuse,
+                                         lm->get_light_options().specular);
+        m_cur_shader->send_light_pos(lm->m_pos); // for diffusion and specular
+    }
+
+    /* any model has to send it's pvm */
+    m_cur_shader->send_pvm(camera->get_PV() * model_mat);
     for (auto &mesh : meshes) {
         mesh.draw_mesh(*m_cur_shader);
     }
@@ -91,6 +105,10 @@ void model::draw_model() {
 void model::draw_model(shader &s) {
     if (s != *m_cur_shader) m_cur_shader = &s;
     draw_model();
+}
+
+void model::add_light_model(const lightModel &lm) {
+    lightModels.push_back(&lm);
 }
 
 glm::mat4 model::calc_model_mat() const {
@@ -102,34 +120,35 @@ glm::mat4 model::calc_model_mat() const {
     return ret;
 }
 
-void model::set_material_options() {
-    material_opt.ambient = glm::vec3(0.1f);
+void model::set_options() {
+    material_opt.ambient = glm::vec3(0.2f);
+    material_opt.shine = 32.0f;
 }
 
 /* ------------------------ light model ------------------------ */
 
-void lightModel::set_material_options() {
-    light_opt.ambient = glm::vec3(0.1f);
+void lightModel::set_options() {
+    light_opt.ambient = glm::vec3(0.2f);
     light_opt.diffuse = glm::vec3(0.7f);
-    light_opt.specular = glm::vec3(0.2f);
+    light_opt.specular = glm::vec3(0.5f);
 }
 
 lightModel::lightModel(cameraManager &camera, shader &s)
     : model(camera, s, mesh{{255, 255, 255}}) {
-    set_material_options();
+    set_options();
 }
 
+// light model simply draws a solid bright color.
 void lightModel::draw_model() {
     glm::mat4 model_mat = calc_model_mat();
-    glm::mat3 inv_trans_model_mat = glm::transpose(glm::inverse(model_mat));
-    m_cur_shader->send_light_options(
-        light_opt.ambient, light_opt.diffuse, light_opt.specular);
-    m_cur_shader->send_light_pos(model_mat);
-    m_cur_shader->send_model_matrix(model_mat);
-    m_cur_shader->send_normal_matrix(inv_trans_model_mat);
-    m_cur_shader->send_PVM(camera->get_PV() * model_mat);
+    /* any model has to send it's pvm */
+    m_cur_shader->send_pvm(camera->get_PV() * model_mat);
 
     for (auto &mesh : meshes) {
         mesh.draw_mesh(*m_cur_shader);
     }
+}
+
+const lightModel::light_options &lightModel::get_light_options() const {
+    return light_opt;
 }
