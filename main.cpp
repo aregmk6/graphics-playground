@@ -74,6 +74,7 @@ GLFWwindow *startup()
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
   glad_glEnable(GL_DEPTH_TEST);
+  glad_glEnable(GL_CULL_FACE);
 
   return window;
 }

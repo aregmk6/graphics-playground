@@ -2,7 +2,12 @@
 
 #include "utilities.h"
 
+#include <GLFW/glfw3.h>
+
 using namespace amk;
+
+static constexpr glm::vec3 up{0.0f, 1.0f, 0.0f};
+static constexpr glm::vec3 down{0.0f, -1.0f, 0.0f};
 
 void cameraManager::update_cam_pos(GLFWwindow *const window, GLfloat dt)
 {
@@ -14,16 +19,20 @@ void cameraManager::update_cam_pos(GLFWwindow *const window, GLfloat dt)
   }
   GLfloat dx = dt * camera_speed;
 
+  if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+    cameraPos += dx * up;
+  } else if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+    cameraPos += dx * down;
+  }
+
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
     cameraPos += dx * cameraFront;
-  }
-  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+  } else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
     cameraPos -= dx * cameraFront;
   }
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
     cameraPos += dx * glm::normalize(glm::cross(cameraFront, up));
-  }
-  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+  } else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
     cameraPos -= dx * glm::normalize(glm::cross(cameraFront, up));
   }
 }

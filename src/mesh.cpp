@@ -61,7 +61,8 @@ void mesh::draw_mesh(shader &s)
 std::vector<GLuint> get_index_data()
 {
   constexpr int vert_per_face = 4;
-  constexpr int order[]       = {0, 1, 3, 1, 2, 3};
+  // constexpr int order[]       = {0, 1, 3, 1, 2, 3};
+  constexpr int order[] = {3, 2, 1, 0, 3, 1};
   std::vector<GLuint> vertcies{};
   for (int i = 0; i < 6; ++i) {
     for (int j = 0; j < 6; ++j) {
@@ -77,35 +78,35 @@ std::vector<amk::vertex> get_vertex_data()
   // for now I'll hardcode it.
   std::vector<glm::vec3> //
       pos{
-          { 0.5f,  0.5f,  0.5f}, // top right
-          { 0.5f, -0.5f,  0.5f}, // bottom right
-          {-0.5f, -0.5f,  0.5f}, // bottom left
-          {-0.5f,  0.5f,  0.5f}, // top left
+          { 1.0f,  1.0f,  1.0f}, // top right
+          { 1.0f, -1.0f,  1.0f}, // bottom right
+          {-1.0f, -1.0f,  1.0f}, // bottom left
+          {-1.0f,  1.0f,  1.0f}, // top left
 
-          { 0.5f,  0.5f, -0.5f}, // top right
-          { 0.5f, -0.5f, -0.5f}, // bottom right
-          {-0.5f, -0.5f, -0.5f}, // bottom left
-          {-0.5f,  0.5f, -0.5f}, // top left
+          {-1.0f,  1.0f, -1.0f}, // top right
+          {-1.0f, -1.0f, -1.0f}, // bottom right
+          { 1.0f, -1.0f, -1.0f}, // bottom left
+          { 1.0f,  1.0f, -1.0f}, // top left
 
-          { 0.5f,  0.5f, -0.5f}, // top right
-          { 0.5f, -0.5f, -0.5f}, // bottom right
-          { 0.5f, -0.5f,  0.5f}, // bottom left
-          { 0.5f,  0.5f,  0.5f}, // top left
+          { 1.0f,  1.0f, -1.0f}, // top right
+          { 1.0f, -1.0f, -1.0f}, // bottom right
+          { 1.0f, -1.0f,  1.0f}, // bottom left
+          { 1.0f,  1.0f,  1.0f}, // top left
 
-          {-0.5f,  0.5f, -0.5f}, // top right
-          {-0.5f, -0.5f, -0.5f}, // bottom right
-          {-0.5f, -0.5f,  0.5f}, // bottom left
-          {-0.5f,  0.5f,  0.5f}, // top left
+          {-1.0f,  1.0f,  1.0f}, // top right
+          {-1.0f, -1.0f,  1.0f}, // bottom right
+          {-1.0f, -1.0f, -1.0f}, // bottom left
+          {-1.0f,  1.0f, -1.0f}, // top left
 
-          { 0.5f,  0.5f, -0.5f}, // top right
-          { 0.5f,  0.5f,  0.5f}, // bottom right
-          {-0.5f,  0.5f,  0.5f}, // bottom left
-          {-0.5f,  0.5f, -0.5f}, // top left
+          { 1.0f,  1.0f, -1.0f}, // top right
+          { 1.0f,  1.0f,  1.0f}, // bottom right
+          {-1.0f,  1.0f,  1.0f}, // bottom left
+          {-1.0f,  1.0f, -1.0f}, // top left
 
-          { 0.5f, -0.5f, -0.5f}, // top right
-          { 0.5f, -0.5f,  0.5f}, // bottom right
-          {-0.5f, -0.5f,  0.5f}, // bottom left
-          {-0.5f, -0.5f, -0.5f}  // top left
+          {-1.0f, -1.0f, -1.0f}, // top right
+          {-1.0f, -1.0f,  1.0f}, // bottom right
+          { 1.0f, -1.0f,  1.0f}, // bottom left
+          { 1.0f, -1.0f, -1.0f}  // top left
   };
 
   std::vector<glm::vec3> normals{};
@@ -115,7 +116,6 @@ std::vector<amk::vertex> get_vertex_data()
     for (int i = 0; i < 4; ++i) {
       norm += *(it + i);
     }
-    norm /= 4.0f;
     for (int i = 0; i < 4; ++i) {
       normals.push_back(glm::normalize(norm));
     }
@@ -166,35 +166,35 @@ std::vector<amk::vertex> get_solid_color_vertex_data()
   // for now I'll hardcode it.
   std::vector<glm::vec3> //
       pos{
-          { 0.5f,  0.5f,  0.5f}, // top right
-          { 0.5f, -0.5f,  0.5f}, // bottom right
-          {-0.5f, -0.5f,  0.5f}, // bottom left
-          {-0.5f,  0.5f,  0.5f}, // top left
+          { 1.0f,  1.0f,  1.0f}, // top right
+          { 1.0f, -1.0f,  1.0f}, // bottom right
+          {-1.0f, -1.0f,  1.0f}, // bottom left
+          {-1.0f,  1.0f,  1.0f}, // top left
 
-          { 0.5f,  0.5f, -0.5f}, // top right
-          { 0.5f, -0.5f, -0.5f}, // bottom right
-          {-0.5f, -0.5f, -0.5f}, // bottom left
-          {-0.5f,  0.5f, -0.5f}, // top left
+          { 1.0f,  1.0f, -1.0f}, // top right
+          { 1.0f, -1.0f, -1.0f}, // bottom right
+          {-1.0f, -1.0f, -1.0f}, // bottom left
+          {-1.0f,  1.0f, -1.0f}, // top left
 
-          { 0.5f,  0.5f, -0.5f}, // top right
-          { 0.5f, -0.5f, -0.5f}, // bottom right
-          { 0.5f, -0.5f,  0.5f}, // bottom left
-          { 0.5f,  0.5f,  0.5f}, // top left
+          { 1.0f,  1.0f, -1.0f}, // top right
+          { 1.0f, -1.0f, -1.0f}, // bottom right
+          { 1.0f, -1.0f,  1.0f}, // bottom left
+          { 1.0f,  1.0f,  1.0f}, // top left
 
-          {-0.5f,  0.5f, -0.5f}, // top right
-          {-0.5f, -0.5f, -0.5f}, // bottom right
-          {-0.5f, -0.5f,  0.5f}, // bottom left
-          {-0.5f,  0.5f,  0.5f}, // top left
+          {-1.0f,  1.0f, -1.0f}, // top right
+          {-1.0f, -1.0f, -1.0f}, // bottom right
+          {-1.0f, -1.0f,  1.0f}, // bottom left
+          {-1.0f,  1.0f,  1.0f}, // top left
 
-          { 0.5f,  0.5f, -0.5f}, // top right
-          { 0.5f,  0.5f,  0.5f}, // bottom right
-          {-0.5f,  0.5f,  0.5f}, // bottom left
-          {-0.5f,  0.5f, -0.5f}, // top left
+          { 1.0f,  1.0f, -1.0f}, // top right
+          { 1.0f,  1.0f,  1.0f}, // bottom right
+          {-1.0f,  1.0f,  1.0f}, // bottom left
+          {-1.0f,  1.0f, -1.0f}, // top left
 
-          { 0.5f, -0.5f, -0.5f}, // top right
-          { 0.5f, -0.5f,  0.5f}, // bottom right
-          {-0.5f, -0.5f,  0.5f}, // bottom left
-          {-0.5f, -0.5f, -0.5f}  // top left
+          { 1.0f, -1.0f, -1.0f}, // top right
+          { 1.0f, -1.0f,  1.0f}, // bottom right
+          {-1.0f, -1.0f,  1.0f}, // bottom left
+          {-1.0f, -1.0f, -1.0f}  // top left
   };
 
   std::vector<glm::vec3> normals{};
@@ -204,7 +204,6 @@ std::vector<amk::vertex> get_solid_color_vertex_data()
     for (int i = 0; i < 4; ++i) {
       norm += *(it + i);
     }
-    norm /= 4.0f;
     for (int i = 0; i < 4; ++i) {
       normals.push_back(glm::normalize(norm));
     }
