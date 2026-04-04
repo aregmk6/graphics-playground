@@ -40,6 +40,7 @@ public:
 private:
   void start_frame() const;
   void end_frame() const;
+  void model_movement();
 
   // ------- helpers -------
 
