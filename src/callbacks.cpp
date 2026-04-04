@@ -60,7 +60,6 @@ void callbackManager::mouse_pos_callback(GLFWwindow *window, double xpos,
 void callbackManager::mouse_enter_callback(GLFWwindow *window, int entered) {
     if (entered) {
         inside = true;
-        std::cout << "entered window" << std::endl;
     }
 }
 

@@ -1,4 +1,5 @@
 #include "shaders.h"
+#include "camera.h"
 #include <GLFW/glfw3.h>
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>
@@ -7,6 +8,23 @@
 
 using namespace amk;
 using std::filesystem::path;
+
+// --------- --------- shader::programHandler --------- --------- //
+
+shader::programHandler::programHandler() : mProgram_id(0) {}
+
+shader::programHandler::programHandler(GLuint id) : mProgram_id(id) {}
+
+shader::programHandler::programHandler(programHandler &&other)
+    : mProgram_id(other.mProgram_id) {
+    other.mProgram_id = 0;
+}
+
+GLuint shader::programHandler::get_id() const {
+    return mProgram_id;
+}
+
+// --------- ---------  shader --------- ---------  //
 
 char shader::shader_src_buff[shader_buff_size];
 const char *shader::shader_src_ptr = shader_src_buff;
@@ -28,13 +46,13 @@ void shader::get_shader_data(const path &p) const {
     ifs.close();
 }
 
-shader::shader() = default;
+shader::shader() : mProg_handler(glCreateProgram()) {}
 
-shader::shader(const path &vert, const path &frag) {
+void shader::initializer(const path &vert, const path &frag) {
+
     path project_root = path(PROJECT_ROOT_PATH);
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    program_id = glCreateProgram();
     int error_res_check = 1;
 
     get_shader_data(project_root / vert);
@@ -49,14 +67,19 @@ shader::shader(const path &vert, const path &frag) {
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &error_res_check);
     ERR_CHECK(error_res_check, "fragment shader compile");
 
-    glAttachShader(program_id, vertexShader);
-    glAttachShader(program_id, fragmentShader);
-    glLinkProgram(program_id);
-    glGetProgramiv(program_id, GL_LINK_STATUS, &error_res_check);
+    glAttachShader(mProg_handler.get_id(), vertexShader);
+    glAttachShader(mProg_handler.get_id(), fragmentShader);
+    glLinkProgram(mProg_handler.get_id());
+    glGetProgramiv(mProg_handler.get_id(), GL_LINK_STATUS, &error_res_check);
     ERR_CHECK(error_res_check, "program link");
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+}
+
+shader::shader(const path &vert, const path &frag)
+    : mProg_handler(glCreateProgram()) {
+    initializer(vert, frag);
 
     //  "u_pvm"
     //  "u_viewPos"
@@ -90,11 +113,11 @@ void shader::assign_uniforms() {
 }
 
 GLuint shader::get_id() const {
-    return program_id;
+    return mProg_handler.get_id();
 }
 
 bool shader::operator==(const shader &other) const {
-    return program_id == other.program_id;
+    return mProg_handler.get_id() == other.mProg_handler.get_id();
 }
 
 bool shader::operator!=(const shader &other) const {
@@ -102,9 +125,9 @@ bool shader::operator!=(const shader &other) const {
 }
 
 void shader::use() const {
-    if (program_id != cur_active_shader) {
-        glUseProgram(program_id);
-        cur_active_shader = program_id;
+    if (mProg_handler.get_id() != cur_active_shader) {
+        glUseProgram(mProg_handler.get_id());
+        cur_active_shader = mProg_handler.get_id();
     }
 }
 
@@ -116,7 +139,8 @@ GLint shader::insert_uniform(const std::string &uni) {
     auto it = uniform_map.find(uni);
     if (it != uniform_map.end()) return it->second;
 
-    GLint uni_loc = glad_glGetUniformLocation(program_id, uni.c_str());
+    GLint uni_loc =
+        glad_glGetUniformLocation(mProg_handler.get_id(), uni.c_str());
 
     if (uni_loc == -1) {
         std::cerr << "uniform \"" << uni << "\" doesn't exist" << std::endl;
@@ -216,35 +240,12 @@ void shader::send_material_options(glm::vec3 ambient, GLfloat shine) {
     assign_float_uniform(material_struct_location.shine, shine);
 }
 
+// --------- ---------  lightShader --------- ---------  //
+
 lightShader::lightShader(const std::filesystem::path &vert,
                          const std::filesystem::path &frag)
     : shader() {
-    path project_root = path(PROJECT_ROOT_PATH);
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    program_id = glCreateProgram();
-    int error_res_check = 1;
-
-    get_shader_data(project_root / vert);
-    glShaderSource(vertexShader, 1, &shader_src_ptr, NULL);
-    glCompileShader(vertexShader);
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &error_res_check);
-    ERR_CHECK(error_res_check, "vertex shader compile");
-
-    get_shader_data(project_root / frag);
-    glShaderSource(fragmentShader, 1, &shader_src_ptr, NULL);
-    glCompileShader(fragmentShader);
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &error_res_check);
-    ERR_CHECK(error_res_check, "fragment shader compile");
-
-    glAttachShader(program_id, vertexShader);
-    glAttachShader(program_id, fragmentShader);
-    glLinkProgram(program_id);
-    glGetProgramiv(program_id, GL_LINK_STATUS, &error_res_check);
-    ERR_CHECK(error_res_check, "program link");
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    initializer(vert, frag);
 
     //  "u_pvm"
     //  "u_viewPos"

@@ -6,83 +6,96 @@
 #include "mesh.h"
 #include "shaders.h"
 
-namespace amk {
+namespace amk
+{
 
-class lightModel;
+class lightModel; // forward declare
 
-class model {
-  private:
-    struct material_options {
-        glm::vec3 ambient;
-        GLfloat shine;
-    };
+class model
+{
+public:
+  enum axis { x, y, z };
 
-    material_options material_opt;
-    std::vector<const lightModel *> lightModels;
+  struct srp_data { // scale - rotation - position
+    glm::vec3 scale;
+    glm::vec3 rotation;
+    glm::vec3 pos;
+  };
 
-  protected:
-    virtual void set_options();
+  model(cameraManager &camera, shader &s);
 
-    shader *m_cur_shader;
-    cameraManager *camera;
-    std::vector<mesh> meshes;
+  model(cameraManager &camera, shader &s, const mesh &m);
 
-    glm::mat4 m_model;
+  model(cameraManager &camera, shader &s, const std::vector<mesh> &m_v);
 
-    glm::vec3 m_scale;
-    glm::vec3 m_axis_rotations;
-    glm::vec3 m_pos;
+  void add_mesh(const mesh &m);
 
-    glm::mat4 calc_model_mat() const;
+  void add_mesh(const std::vector<mesh> &m);
 
-  public:
-    enum axis { x, y, z };
+  void set_model_pos(const glm::vec3 &pos);
 
-    model(cameraManager &camera, shader &s);
+  void set_model_scale(const glm::vec3 &scale);
 
-    model(cameraManager &camera, shader &s, const mesh &m);
+  void set_model_rot(const GLfloat deg, model::axis a);
 
-    model(cameraManager &camera, shader &s, const std::vector<mesh> &m_v);
+  void set_model_rot(const glm::vec3 &degs);
 
-    void add_mesh(const mesh &m);
+  virtual void draw_model();
 
-    void add_mesh(const std::vector<mesh> &m);
+  void draw_model(shader &s);
 
-    void set_model_pos(const glm::vec3 &pos);
+  void add_light_model(const lightModel &lm);
 
-    void set_model_scale(const glm::vec3 &scale);
+  void send_srp(srp_data &data);
 
-    void set_model_rot(const GLfloat deg, model::axis a);
+  void get_srp(glm::vec3 &pos, glm::vec3 &rot, glm::vec3 &scale) const;
 
-    void set_model_rot(const glm::vec3 &degs);
+protected:
+  virtual void set_options();
 
-    virtual void draw_model();
+  shader *m_cur_shader;
+  cameraManager *camera;
+  std::vector<mesh> meshes;
 
-    void draw_model(shader &s);
+  glm::vec3 m_scale;
+  glm::vec3 m_axis_rotations;
+  glm::vec3 m_pos;
 
-    void add_light_model(const lightModel &lm);
+  glm::mat4 calc_model_mat() const;
+
+private:
+  struct material_options {
+    glm::vec3 ambient;
+    GLfloat shine;
+  };
+
+  material_options material_opt;
+  std::vector<const lightModel *> lightModels;
+
+  friend class modelManager;
 };
 
-class lightModel : public model {
-  public:
-    lightModel(cameraManager &camera, shader &s);
+class lightModel : public model
+{
+private:
+  struct light_options {
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+  };
 
-    virtual void draw_model() override;
+public:
+  lightModel(cameraManager &camera, shader &s);
 
-  protected:
-    virtual void set_options() override;
+  virtual void draw_model() override;
 
-  private:
-    struct light_options {
-        glm::vec3 ambient;
-        glm::vec3 diffuse;
-        glm::vec3 specular;
-    };
+  const light_options &get_light_options() const;
 
-    light_options light_opt;
+protected:
+  virtual void set_options() override;
 
-  public:
-    const light_options &get_light_options() const;
+private:
+  light_options light_opt;
 };
 
 }; // namespace amk

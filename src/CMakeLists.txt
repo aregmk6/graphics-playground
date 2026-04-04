@@ -8,4 +8,6 @@ target_sources(jump
 		PRIVATE callbacks.cpp
 		PRIVATE mesh.cpp
 		PRIVATE model.cpp		
+		PRIVATE gui.cpp
+		PRIVATE modelManager.cpp
 )
