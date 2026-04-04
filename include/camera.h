@@ -26,14 +26,16 @@ public:
 
   void set_last_coords(GLfloat x, GLfloat y);
 
+  void update_aspect_ratio(const GLfloat new_x, const GLfloat new_y);
+
 private:
   static constexpr glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
   glm::vec3 cameraPos           = glm::vec3(0.0f, 0.0f, 3.0f);
   glm::vec3 cameraFront         = glm::vec3(0.0f, 0.0f, -1.0f);
 
   GLfloat fov               = 45.0f;
-  GLfloat aspecty           = 800.0f;
-  GLfloat aspectx           = 600.0f;
+  GLfloat aspectx           = 640.0f;
+  GLfloat aspecty           = 480.0f;
   GLfloat close             = 0.1f;
   GLfloat far               = 100.0f;
   GLfloat rotation_deg      = 0.0f;
@@ -45,7 +47,7 @@ private:
   GLfloat yaw               = 0.0f;
   GLfloat sensativity       = 0.1f;
 
-  glm::mat4 mat_perspect = glm::perspective(fov, aspecty / aspectx, close, far);
+  glm::mat4 mat_perspect = glm::perspective(fov, aspectx / aspecty, close, far);
 
   glm::mat4 mat_view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
 

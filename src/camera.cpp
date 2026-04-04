@@ -63,7 +63,7 @@ void cameraManager::update_cam_front(GLFWwindow *const window,
 glm::mat4 cameraManager::get_PV()
 {
   mat_view     = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
-  mat_perspect = glm::perspective(fov, aspecty / aspectx, close, far);
+  mat_perspect = glm::perspective(fov, aspectx / aspecty, close, far);
   return mat_perspect * mat_view;
 }
 
@@ -81,4 +81,10 @@ void cameraManager::set_last_coords(GLfloat x, GLfloat y)
 {
   lastx = x;
   lasty = y;
+}
+void amk::cameraManager::update_aspect_ratio(const GLfloat new_x,
+                                             const GLfloat new_y)
+{
+  aspectx = new_x;
+  aspecty = new_y;
 }
